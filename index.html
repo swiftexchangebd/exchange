@@ -1,0 +1,1979 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta ="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SwiftExchange BD – Dollar Sell Rate:</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --bg:#0a0e1a;--bg2:#111827;--bg3:#1a2235;
+  --accent:#00d4aa;--accent2:#f7c948;--danger:#ff4d6d;--warn:#f97316;
+  --text:#e8eaf0;--text-muted:#8892a4;
+  --border:rgba(255,255,255,0.08);--card-bg:rgba(255,255,255,0.04);
+  --glow:0 0 30px rgba(0,212,170,0.15);--radius:14px;
+  --font:'Hind Siliguri',sans-serif;--font-head:'Syne',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:16px;line-height:1.6;overflow-x:hidden}
+.particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden}
+.particle{position:absolute;width:2px;height:2px;background:var(--accent);border-radius:50%;animation:float linear infinite;opacity:0}
+@keyframes float{0%{transform:translateY(100vh);opacity:0}10%{opacity:.5}90%{opacity:.15}100%{transform:translateY(-10vh);opacity:0}}
+
+/* NAV */
+.navbar{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:13px 24px;background:rgba(10,14,26,0.93);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px}
+.logo{font-family:var(--font-head);font-size:clamp(1.1rem, 3.5vw, 1.35rem);font-weight:800;color:#fff;white-space:nowrap}
+.logo span{color:var(--accent)}
+.nav-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;flex:1}
+.status-badge{display:flex;align-items:center;gap:5px;background:var(--card-bg);border:1px solid var(--border);padding:5px 12px;border-radius:100px;font-size:.78rem;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:#555;flex-shrink:0}
+.dot.open{background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 1.5s infinite}
+.dot.closed{background:var(--danger)}
+.dot.soon{background:var(--accent2)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.user-bar{display:flex;align-items:center;justify-content:space-between;background:rgba(0,212,170,0.07);border-bottom:1px solid rgba(0,212,170,0.15);padding:8px 24px;font-size:.88rem;flex-wrap:wrap;gap:8px}
+.user-bar-left{display:flex;align-items:center;gap:10px}
+.user-bar-right{display:flex;gap:8px;flex-wrap:wrap}
+
+/* BUTTONS */
+.btn-primary{background:var(--accent);color:#0a0e1a;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:700;font-family:var(--font);font-size:.86rem;transition:.2s;white-space:nowrap}
+.btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.btn-outline{background:transparent;color:var(--accent);border:1.5px solid var(--accent);padding:7px 14px;border-radius:8px;cursor:pointer;font-weight:600;font-family:var(--font);font-size:.86rem;transition:.2s;white-space:nowrap}
+.btn-outline:hover{background:rgba(0,212,170,0.1)}
+.btn-sm{background:transparent;color:var(--text-muted);border:1px solid var(--border);padding:5px 12px;border-radius:6px;cursor:pointer;font-family:var(--font);font-size:.8rem;transition:.2s;white-space:nowrap}
+.btn-sm:hover{color:var(--text);border-color:rgba(255,255,255,0.2)}
+.btn-danger{background:transparent;color:var(--danger);border:1px solid rgba(255,77,109,0.3);padding:5px 12px;border-radius:6px;cursor:pointer;font-family:var(--font);font-size:.8rem;transition:.2s}
+.btn-danger:hover{background:rgba(255,77,109,0.1)}
+.btn-history{background:rgba(0,212,170,0.1);color:var(--accent);border:1px solid rgba(0,212,170,0.3);padding:7px 14px;border-radius:8px;cursor:pointer;font-family:var(--font);font-size:.84rem;font-weight:600;transition:.2s;white-space:nowrap}
+.btn-history:hover{background:rgba(0,212,170,0.2)}
+.btn-logout{background:rgba(255,77,109,0.08);color:var(--danger);border:1px solid rgba(255,77,109,0.25);padding:7px 14px;border-radius:8px;cursor:pointer;font-family:var(--font);font-size:.84rem;font-weight:600;transition:.2s;white-space:nowrap}
+.btn-logout:hover{background:rgba(255,77,109,0.15)}
+
+/* HERO */
+.hero{position:relative;z-index:1;text-align:center;padding:70px 20px 50px}
+.hero-tag{display:inline-block;background:rgba(0,212,170,0.1);border:1px solid rgba(0,212,170,0.25);color:var(--accent);padding:5px 16px;border-radius:100px;font-size:.8rem;margin-bottom:22px}
+.hero h1{font-family:var(--font-head);font-size:clamp(2rem,6vw,3.6rem);font-weight:800;line-height:1.15;margin-bottom:12px}
+.accent{color:var(--accent);text-shadow:0 0 36px rgba(0,212,170,0.35)}
+.hero-sub{color:var(--text-muted);font-size:1rem;margin-bottom:14px}
+.hero-min-note{font-size:.88rem;color:var(--text-muted);margin-bottom:28px;display:inline-block;background:rgba(0,212,170,0.07);border:1px solid rgba(0,212,170,0.2);padding:6px 18px;border-radius:100px}
+.hero-min-coin{color:var(--accent);font-weight:700}
+.hero-min-sep{margin:0 6px;opacity:.4}
+.rate-card-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:30px}
+.rate-card{background:var(--card-bg);border:1px solid var(--border);padding:14px 22px;border-radius:var(--radius);min-width:130px;transition:.3s}
+.rate-card:hover{border-color:var(--accent);box-shadow:var(--glow)}
+.rate-card.highlight{border-color:var(--accent);background:rgba(0,212,170,0.06)}
+.rate-label{font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
+.rate-val{font-size:1rem;font-weight:700}
+.btn-hero{background:linear-gradient(135deg,var(--accent),#00b890);color:#0a0e1a;border:none;padding:13px 34px;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;font-family:var(--font);box-shadow:0 8px 26px rgba(0,212,170,0.28);transition:.3s}
+.btn-hero:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(0,212,170,0.4)}
+
+/* HOURS BANNER */
+.hours-banner{position:relative;z-index:1;padding:12px 20px;text-align:center;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.hours-banner.open-state{background:rgba(0,212,170,0.07)}
+.hours-banner.closed-state{background:rgba(255,77,109,0.06)}
+.hours-banner.soon-state{background:rgba(247,201,72,0.07)}
+.hours-inner{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;font-size:.9rem}
+.live-clock{font-family:monospace;font-size:.86rem;color:var(--accent);background:rgba(0,0,0,0.3);padding:2px 9px;border-radius:6px}
+
+/* ABOUT */
+.about-section{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:55px 20px}
+.section-title{text-align:center;margin-bottom:32px}
+.section-title h2{font-family:var(--font-head);font-size:1.65rem;margin-bottom:7px}
+.section-title p{color:var(--text-muted);font-size:.92rem}
+.about-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:40px}
+.about-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:.3s}
+.about-card:hover{border-color:var(--accent);box-shadow:var(--glow);transform:translateY(-2px)}
+.about-icon{font-size:1.8rem;margin-bottom:9px}
+.about-card h3{font-family:var(--font-head);font-size:.97rem;margin-bottom:7px}
+.about-card p{color:var(--text-muted);font-size:.86rem;line-height:1.75}
+.about-card strong{color:var(--accent)}
+.how-it-works{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:28px;text-align:center}
+.how-it-works h3{font-family:var(--font-head);font-size:1.1rem;margin-bottom:22px}
+.steps-row{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px}
+.hw-step{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:100px}
+.hw-num{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#00b890);color:#0a0e1a;font-weight:800;font-size:.9rem;display:flex;align-items:center;justify-content:center}
+.hw-text{font-size:.78rem;color:var(--text-muted);text-align:center;max-width:95px}
+.hw-arrow{font-size:1.1rem;color:var(--accent);opacity:.4}
+
+/* EXCHANGE */
+.exchange-section{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:14px 20px 55px}
+.exchange-layout{display:grid;grid-template-columns:1fr 1.5fr;gap:22px;align-items:start}
+.ltc-address-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:sticky;top:76px}
+.ltc-badge{background:rgba(0,212,170,0.1);color:var(--accent);font-size:.72rem;font-weight:700;padding:3px 11px;border-radius:100px;display:inline-block;margin-bottom:11px;letter-spacing:.05em;text-transform:uppercase}
+.ltc-addr{background:rgba(0,0,0,0.4);border:1px solid var(--border);padding:10px;border-radius:8px;font-family:monospace;font-size:.72rem;word-break:break-all;margin-bottom:10px;line-height:1.6}
+.copy-btn{width:100%;background:var(--accent);color:#0a0e1a;border:none;padding:9px;border-radius:8px;font-weight:700;cursor:pointer;font-family:var(--font);transition:.2s;margin-bottom:13px;font-size:.9rem}
+.copy-btn:hover{filter:brightness(1.1)}
+.ltc-steps{margin-bottom:12px}
+.step{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:.83rem}
+.step:last-child{border-bottom:none}
+.step-num{width:21px;height:21px;border-radius:50%;background:var(--accent);color:#0a0e1a;font-weight:700;font-size:.7rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ltc-note{background:rgba(255,77,109,0.08);border:1px solid rgba(255,77,109,0.2);border-radius:8px;padding:8px 12px;font-size:.78rem;color:#ff8fa3}
+
+/* FORM */
+.exchange-form{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-weight:600;margin-bottom:6px;font-size:.88rem}
+.form-group input{width:100%;background:rgba(0,0,0,0.3);border:1.5px solid var(--border);color:var(--text);padding:10px 14px;border-radius:10px;font-size:.92rem;font-family:var(--font);transition:.2s}
+.form-group input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,170,0.1)}
+.form-group input::placeholder{color:var(--text-muted)}
+.taka-preview{margin-top:4px;font-size:.82rem;color:var(--accent);font-weight:600;min-height:18px}
+.error-msg{color:var(--danger);font-size:.78rem;margin-top:3px;min-height:15px}
+.help-icon{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:rgba(247,201,72,0.12);color:var(--accent2);font-size:.65rem;cursor:pointer;margin-left:5px;border:1px solid rgba(247,201,72,0.3);vertical-align:middle;transition:.2s;user-select:none;font-style:normal}
+.help-icon:hover{background:rgba(247,201,72,0.28);transform:scale(1.15)}
+.upload-area{border:2px dashed var(--border);border-radius:10px;padding:22px 16px;text-align:center;cursor:pointer;transition:.3s}
+.upload-area:hover{border-color:var(--accent);background:rgba(0,212,170,0.03)}
+.upload-icon{font-size:1.8rem;margin-bottom:6px}
+.upload-text{font-weight:600;margin-bottom:2px;font-size:.88rem}
+.upload-sub{color:var(--text-muted);font-size:.76rem}
+.img-preview-wrap{position:relative;margin-top:10px}
+.img-preview-wrap img{width:100%;max-height:170px;object-fit:contain;border-radius:8px;border:1px solid var(--border)}
+.remove-img{position:absolute;top:6px;right:6px;background:var(--danger);color:#fff;border:none;border-radius:6px;padding:3px 8px;cursor:pointer;font-size:.74rem}
+.btn-submit{width:100%;background:linear-gradient(135deg,var(--accent),#00b890);color:#0a0e1a;border:none;padding:12px;border-radius:10px;font-size:.96rem;font-weight:700;cursor:pointer;font-family:var(--font);transition:.3s;margin-top:4px}
+.btn-submit:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,212,170,0.28)}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* TUTORIAL & PARTNER */
+.tutorial-section{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:20px 20px 55px}
+.video-wrap{position:relative;padding-bottom:56.25%;background:#000;border-radius:var(--radius);overflow:hidden;margin-bottom:11px}
+.video-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}
+.video-note{text-align:center;color:var(--text-muted);font-size:.86rem}
+.partner-section{position:relative;z-index:1;background:linear-gradient(135deg,rgba(247,201,72,0.05),rgba(0,212,170,0.03));border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:34px 20px;text-align:center}
+.partner-inner{display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;margin-bottom:20px}
+.partner-text h3{font-family:var(--font-head);font-size:1.15rem;margin-bottom:4px}
+.partner-text p{color:var(--text-muted);font-size:.9rem}
+.partner-text strong{color:var(--accent2)}
+.partner-btn{background:linear-gradient(135deg,#f7c948,#e5b730);color:#0a0e1a;text-decoration:none;padding:10px 24px;border-radius:10px;font-weight:700;font-size:.9rem;transition:.3s;white-space:nowrap;display:inline-block}
+.partner-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(247,201,72,0.3)}
+.partner-banner{max-width:468px;width:100%;border-radius:8px;border:1px solid var(--border);display:block;margin:0 auto}
+
+/* ORDER HISTORY (User) */
+.history-section{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:36px 20px 55px}
+.history-empty{text-align:center;color:var(--text-muted);padding:40px;font-size:.95rem}
+.order-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;transition:.2s}
+.order-card:hover{border-color:rgba(255,255,255,0.14)}
+.order-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.order-id{font-family:monospace;font-size:.76rem;color:var(--text-muted)}
+.order-time{font-size:.76rem;color:var(--text-muted)}
+.status-pill{padding:4px 12px;border-radius:100px;font-size:.76rem;font-weight:700;letter-spacing:.04em}
+.status-pill.pending{background:rgba(247,201,72,0.12);color:var(--accent2);border:1px solid rgba(247,201,72,0.3)}
+.status-pill.confirmed{background:rgba(0,212,170,0.12);color:var(--accent);border:1px solid rgba(0,212,170,0.3)}
+.status-pill.rejected{background:rgba(255,77,109,0.12);color:var(--danger);border:1px solid rgba(255,77,109,0.3)}
+.order-details{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.order-detail-item{font-size:.83rem}
+.order-detail-label{color:var(--text-muted);font-size:.73rem;margin-bottom:2px}
+.order-detail-val{font-weight:600}
+.order-screenshot{margin-top:12px}
+.order-screenshot a{color:var(--accent);font-size:.82rem;text-decoration:none}
+.order-screenshot a:hover{text-decoration:underline}
+.order-note{margin-top:10px;padding:8px 12px;background:rgba(0,212,170,0.05);border-radius:8px;font-size:.82rem;color:var(--text-muted);border-left:3px solid var(--accent)}
+
+/* ADMIN PANEL */
+.admin-section{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:36px 20px 55px}
+.admin-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px}
+.admin-header h2{font-family:var(--font-head);font-size:1.5rem}
+.admin-tabs{display:flex;gap:10px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:10px;overflow-x:auto;}
+.admin-tab-btn{padding:8px 18px;background:var(--bg2);color:var(--text-muted);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-family:var(--font);font-weight:600;transition:0.2s;white-space:nowrap;}
+.admin-tab-btn.active{background:var(--accent);color:#0a0e1a;border-color:var(--accent);}
+.admin-tab-content{display:none;}
+.admin-tab-content.active{display:block;}
+
+.admin-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center}
+.stat-num{font-family:var(--font-head);font-size:1.8rem;font-weight:800;color:var(--accent)}
+.stat-label{font-size:.78rem;color:var(--text-muted);margin-top:2px}
+.admin-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.filter-btn{padding:6px 16px;border-radius:100px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:var(--font);border:1px solid var(--border);background:transparent;color:var(--text-muted);transition:.2s}
+.filter-btn.active{background:var(--accent);color:#0a0e1a;border-color:var(--accent)}
+.admin-order-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.btn-confirm{background:rgba(0,212,170,0.12);color:var(--accent);border:1px solid rgba(0,212,170,0.3);padding:7px 16px;border-radius:8px;cursor:pointer;font-family:var(--font);font-size:.84rem;font-weight:700;transition:.2s}
+.btn-confirm:hover{background:rgba(0,212,170,0.22)}
+.btn-reject{background:rgba(255,77,109,0.1);color:var(--danger);border:1px solid rgba(255,77,109,0.3);padding:7px 16px;border-radius:8px;cursor:pointer;font-family:var(--font);font-size:.84rem;font-weight:700;transition:.2s}
+.btn-reject:hover{background:rgba(255,77,109,0.2)}
+.admin-note-input{flex:1;min-width:180px;background:rgba(0,0,0,0.3);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:8px;font-family:var(--font);font-size:.83rem}
+.admin-note-input:focus{outline:none;border-color:var(--accent)}
+
+/* ADMIN CHAT PANEL */
+.admin-chat-layout{display:grid;grid-template-columns:1fr 2fr;gap:20px;height:500px;}
+.chat-user-list{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow-y:auto;padding:12px;}
+.chat-user-item{padding:12px;border-bottom:1px solid var(--border);cursor:pointer;border-radius:8px;transition:0.2s;}
+.chat-user-item:hover{background:rgba(255,255,255,0.05);}
+.chat-user-item.active{background:rgba(0,212,170,0.1);border-color:rgba(0,212,170,0.3);}
+.chat-user-email{font-weight:600;font-size:0.9rem;word-break:break-all;}
+.chat-user-meta{font-size:0.75rem;color:var(--text-muted);display:flex;justify-content:space-between;margin-top:4px;}
+.unread-badge{background:var(--danger);color:#fff;font-size:0.65rem;padding:2px 6px;border-radius:10px;font-weight:bold;}
+.admin-chat-view{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden;}
+.admin-chat-header{background:var(--bg3);padding:14px;border-bottom:1px solid var(--border);font-weight:700;}
+.admin-chat-body{flex:1;padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;background:rgba(0,0,0,0.2);}
+.admin-chat-input-area{display:flex;border-top:1px solid var(--border);background:var(--bg3);}
+.admin-chat-input-area input{flex:1;padding:14px;border:none;background:transparent;color:var(--text);outline:none;}
+.admin-chat-input-area button{padding:0 20px;background:var(--accent);color:#0a0e1a;border:none;font-weight:700;cursor:pointer;}
+
+/* LIVE CHAT WIDGET (USER) */
+.chat-widget{position:fixed;bottom:24px;right:24px;z-index:999;}
+.chat-btn{width:56px;height:56px;border-radius:50%;background:#25D366;color:#fff;font-size:1.6rem;border:none;cursor:pointer;box-shadow:0 6px 20px rgba(37,211,102,0.4);display:flex;align-items:center;justify-content:center;transition:0.3s;text-decoration:none;}
+.chat-btn:hover{transform:scale(1.08);}
+.chat-box{position:absolute;bottom:70px;right:0;width:320px;height:420px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;display:none;flex-direction:column;box-shadow:0 12px 35px rgba(0,0,0,0.4);overflow:hidden;transform-origin:bottom right;}
+.chat-box.active{display:flex;animation:scaleUp 0.25s ease;}
+@keyframes scaleUp{from{transform:scale(0.8);opacity:0;}to{transform:scale(1);opacity:1;}}
+.chat-header{background:var(--bg3);padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-weight:700;font-family:var(--font-head);font-size:1.05rem;}
+.chat-close{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.3rem;transition:0.2s;}
+.chat-close:hover{color:var(--danger);}
+.chat-body{flex:1;padding:14px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;background:rgba(0,0,0,0.1);}
+.chat-msg{padding:9px 13px;border-radius:10px;font-size:0.88rem;max-width:85%;word-wrap:break-word;line-height:1.4;}
+.chat-msg.user{background:rgba(0,212,170,0.18);align-self:flex-end;border-bottom-right-radius:2px;color:var(--text);border:1px solid rgba(0,212,170,0.3);}
+.chat-msg.admin{background:rgba(255,255,255,0.06);align-self:flex-start;border-bottom-left-radius:2px;color:var(--text);border:1px solid var(--border);}
+.chat-input-area{display:flex;border-top:1px solid var(--border);background:var(--bg3);}
+.chat-input-area input{flex:1;padding:12px;background:transparent;border:none;color:var(--text);font-family:var(--font);outline:none;font-size:0.9rem;}
+.chat-input-area button{padding:0 16px;background:var(--accent);color:#0a0e1a;border:none;font-weight:700;cursor:pointer;transition:0.2s;}
+.chat-input-area button:hover{filter:brightness(1.1);}
+.chat-login-prompt{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;color:var(--text-muted);font-size:0.9rem;}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:1000;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(5px)}
+.modal-overlay.active{display:flex}
+.modal-box{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:420px;width:100%;position:relative;animation:slideUp .26s ease;max-height:90vh;overflow-y:auto}
+@keyframes slideUp{from{transform:translateY(26px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-close{position:absolute;top:13px;right:13px;background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer;padding:4px 7px;border-radius:6px;transition:.2s}
+.modal-close:hover{background:var(--card-bg);color:var(--text)}
+.help-box{text-align:center}
+.help-icon-big{font-size:2.2rem;margin-bottom:9px}
+.help-box h3{font-family:var(--font-head);font-size:1.05rem;margin-bottom:9px;color:var(--accent2)}
+.help-box p{color:var(--text-muted);line-height:1.85;font-size:.9rem;white-space:pre-line;text-align:left}
+.auth-box h2{font-family:var(--font-head);font-size:1.3rem;margin-bottom:3px}
+.auth-sub{color:var(--text-muted);font-size:.82rem;margin-bottom:16px}
+.auth-msg{font-size:.84rem;margin-bottom:10px;padding:8px 12px;border-radius:8px}
+.auth-msg.error-msg-box{background:rgba(255,77,109,0.08);color:var(--danger)}
+.auth-msg.success-msg-box{background:rgba(0,212,170,0.08);color:var(--accent)}
+.auth-switch{text-align:center;color:var(--text-muted);font-size:.84rem;margin-top:12px}
+.auth-switch span{color:var(--accent);cursor:pointer;font-weight:600}
+.auth-switch span:hover{text-decoration:underline}
+.success-box{text-align:center}
+.success-anim{font-size:2.8rem;margin-bottom:9px;animation:bounce .42s ease}
+@keyframes bounce{0%{transform:scale(0)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
+.success-box h2{font-family:var(--font-head);font-size:1.3rem;margin-bottom:9px}
+.success-box p{color:var(--text-muted);margin-bottom:16px;font-size:.9rem;line-height:1.7}
+.img-modal-box{background:#000;border:1px solid var(--border);border-radius:14px;padding:10px;max-width:90vw;max-height:90vh;position:relative}
+.img-modal-box img{max-width:100%;max-height:80vh;border-radius:8px;display:block}
+
+.coin-selector-label{flex:1;display:flex;align-items:center;gap:6px;border-radius:9px;padding:8px 10px;cursor:pointer;font-size:.84rem;font-weight:700;transition:.2s;border:2px solid var(--border);background:var(--card-bg)}
+.coin-selector-label.active{background:rgba(0,212,170,0.1);border-color:var(--accent)}
+.pay-selector-label{flex:1;display:flex;align-items:center;gap:6px;border-radius:9px;padding:8px 12px;cursor:pointer;font-size:.88rem;font-weight:700;transition:.2s;border:2px solid var(--border);background:var(--card-bg)}
+.pay-selector-label.active{background:rgba(0,212,170,0.1);border-color:var(--accent)}
+.nagad-fee-note{display:none;margin-top:6px;padding:7px 11px;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.3);border-radius:8px;font-size:.79rem;color:#f97316}
+
+/* RATE TABLE BAR */
+.rate-table-bar{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 14px;background:rgba(0,212,170,0.05);border:1px solid rgba(0,212,170,0.15);border-radius:12px;padding:12px 18px;margin-bottom:18px}
+.rate-table-item{display:flex;align-items:center;gap:5px;font-size:.82rem}
+.rt-range{color:var(--text-muted);font-weight:500}
+.rt-arrow{color:var(--text-muted);opacity:.5}
+.rt-val{font-weight:700;color:var(--text)}
+.rt-val.highlight-rate{color:var(--accent);font-size:.9rem}
+.rt-divider{color:var(--border);font-size:1.1rem;opacity:.5}
+.rt-label{font-size:.78rem;color:var(--text-muted);font-weight:600;margin-right:2px}
+.section-title h2{font-family:var(--font-head);font-size:1.45rem;margin-bottom:4px}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:18px;z-index:9999;background:var(--bg2);border:1px solid var(--border);padding:12px 16px;border-radius:12px;font-size:.86rem;box-shadow:0 8px 26px rgba(0,0,0,0.4);transform:translateY(80px);opacity:0;transition:.3s;pointer-events:none;max-width:280px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-color:var(--accent);color:var(--accent)}
+.toast.error{border-color:var(--danger);color:var(--danger)}
+
+/* FOOTER */
+.footer{position:relative;z-index:1;background:var(--bg2);border-top:1px solid var(--border);padding:34px 20px;text-align:center}
+.footer-logo{font-family:var(--font-head);font-size:1.3rem;font-weight:800;color:var(--accent);margin-bottom:9px}
+.footer p{color:var(--text-muted);font-size:.86rem;line-height:2}
+.footer-rate{display:inline-block;background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.2);color:var(--accent);padding:4px 14px;border-radius:100px;font-size:.8rem;margin-top:10px}
+
+@media(max-width:768px){
+  .admin-chat-layout{grid-template-columns:1fr;height:600px;}
+  .chat-user-list{max-height:200px;}
+}
+@media(max-width:660px){
+  .exchange-layout{grid-template-columns:1fr}
+  .ltc-address-box{position:static}
+  .navbar{padding:11px 14px}
+  .hero{padding:46px 14px 36px}
+  .rate-card{padding:11px 13px;min-width:110px}
+  .exchange-section,.tutorial-section,.about-section,.history-section,.admin-section{padding:32px 13px}
+  .partner-inner{flex-direction:column}
+  .hw-arrow{display:none}
+  .admin-stats{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div class="particles" id="particles"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="logo">⚡ SwiftExchange<span>BD</span></div>
+  <div class="nav-right">
+    <div class="status-badge">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">Loading...</span>
+    </div>
+    <button class="btn-outline" id="loginBtn" onclick="openModal('loginModal')">লগইন</button>
+    <button class="btn-primary" id="signupBtn" onclick="openModal('signupModal')">Sign Up</button>
+  </div>
+</nav>
+
+<!-- USER BAR -->
+<div class="user-bar" id="userBar" style="display:none">
+  <div class="user-bar-left">
+    <span>👋</span>
+    <span id="userGreet"></span>
+  </div>
+  <div class="user-bar-right">
+    <button class="btn-history" onclick="showSection('history')">📋 My Orders</button>
+    <button id="adminNavBtn" class="btn-history" onclick="showSection('admin')" style="display:none;position:relative">⚙️ Admin <span id="adminNotifBadge" style="display:none;position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;font-size:.65rem;width:18px;height:18px;border-radius:50%;align-items:center;justify-content:center;font-weight:bold"></span></button>
+    <button class="btn-logout" onclick="logoutUser()">লগআউট</button>
+  </div>
+</div>
+
+<!-- HERO — compact -->
+<section class="hero" id="sec-home">
+  <div class="hero-tag">🔐 Secure · Fast · Trusted</div>
+  <h1>Dollar <span class="accent">Sell</span> করুন সহজেই</h1>
+  <p class="hero-sub">LTC ও USDT (BEP20) গ্রহণযোগ্য · বিকাশ / নগদে পেমেন্ট পাবেন</p>
+  <p class="hero-min-note">মাত্র <span class="hero-min-coin">LTC $0.20</span> <span class="hero-min-sep">অথবা</span> <span class="hero-min-coin">USDT $0.50</span> থেকে এক্সচেঞ্জ শুরু করা যাবে</p>
+  <button class="btn-hero" onclick="document.getElementById('exchangeSection').scrollIntoView({behavior:'smooth'})">এখনই Sell করুন ↓</button>
+</section>
+
+<!-- HOURS BANNER -->
+<div class="hours-banner" id="hoursBanner">
+  <div class="hours-inner">
+    <span>🕙</span><span id="hoursText">Loading...</span>
+    <span class="live-clock" id="liveClock"></span>
+  </div>
+</div>
+
+<!-- EXCHANGE FORM -->
+<section class="exchange-section" id="exchangeSection">
+  <div class="section-title" style="margin-bottom:8px"><h2>💱 Dollar Sell Rate:</h2></div>
+  <!-- Rate Table — always visible, 1 line -->
+  <div class="rate-table-bar">
+    <span class="rt-label"></span>
+    <div class="rate-table-item" id="rt1"><span class="rt-range">$0.20–$0.50</span><span class="rt-arrow">→</span><span class="rt-val">১১৫৳</span></div>
+    <div class="rt-divider">|</div>
+    <div class="rate-table-item" id="rt2"><span class="rt-range">$0.50–$1</span><span class="rt-arrow">→</span><span class="rt-val">১২০৳</span></div>
+    <div class="rt-divider">|</div>
+    <div class="rate-table-item" id="rt3"><span class="rt-range">$1–$5</span><span class="rt-arrow">→</span><span class="rt-val">১২২৳</span></div>
+    <div class="rt-divider">|</div>
+    <div class="rate-table-item" id="rt4"><span class="rt-range">$5–$10</span><span class="rt-arrow">→</span><span class="rt-val">১২৩৳</span></div>
+  </div>
+  <div class="exchange-layout">
+    <div class="ltc-address-box">
+      <div class="ltc-badge" id="coinBadge">💰 Crypto Token পাঠানোর Address</div>
+      <!-- Coin Type Selector -->
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <label id="ltcTab" style="flex:1;display:flex;align-items:center;gap:6px;background:rgba(0,212,170,0.1);border:2px solid var(--accent);border-radius:9px;padding:8px 10px;cursor:pointer;font-size:.84rem;font-weight:700;transition:.2s">
+          <input type="radio" name="coinType" value="ltc" checked onchange="switchCoin('ltc')" style="accent-color:var(--accent)"/> LTC (Litecoin)
+        </label>
+        <label id="usdtTab" style="flex:1;display:flex;align-items:center;gap:6px;background:var(--card-bg);border:2px solid var(--border);border-radius:9px;padding:8px 10px;cursor:pointer;font-size:.84rem;font-weight:700;transition:.2s">
+          <input type="radio" name="coinType" value="usdt" onchange="switchCoin('usdt')" style="accent-color:var(--accent)"/> USDT (BEP20)
+        </label>
+      </div>
+      <div class="ltc-addr" id="coinAddrDisplay">লোড হচ্ছে...</div>
+      <button class="copy-btn" id="copyAddrBtn" onclick="copyCoinAddr()">📋 Address কপি করুন</button>
+      <div class="ltc-steps">
+        <div class="step"><span class="step-num">১</span>উপরের address কপি করুন</div>
+        <div class="step" id="stepSendText"><span class="step-num">২</span>Send LTC</div>
+        <div class="step"><span class="step-num">৩</span>পাঠানোর পর নিচের ফর্ম পূরণ করুন</div>
+      </div>
+      <div class="ltc-note" id="coinNote">⚠️ শুধুমাত্র <strong>LTC</strong> পাঠান। অন্য coin পাঠালে ফেরত সম্ভব নয়!</div>
+    </div>
+    <form class="exchange-form" id="exchangeForm" onsubmit="submitForm(event)">
+      <div class="form-group">
+        <label>Amount (USD) <i class="help-icon" onclick="showHelp('amount')">?</i></label>
+        <input type="number" id="amount" step="0.01" min="0.20" max="10.00" placeholder="$0.20 থেকে $10.00" required oninput="calcTaka()"/>
+        <div class="taka-preview" id="takaPreview"></div>
+        <div class="error-msg" id="amountError"></div>
+      </div>
+      <!-- পেমেন্ট পদ্ধতি -->
+      <div class="form-group">
+        <label>পেমেন্ট পদ্ধতি <i class="help-icon" onclick="showHelp('paymethod')">?</i></label>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <label id="bkashTab" style="flex:1;display:flex;align-items:center;gap:6px;background:rgba(0,212,170,0.1);border:2px solid var(--accent);border-radius:9px;padding:8px 12px;cursor:pointer;font-size:.88rem;font-weight:700;transition:.2s">
+            <input type="radio" name="payMethod" value="bkash" checked onchange="switchPayMethod('bkash')" style="accent-color:var(--accent)"/> বিকাশ
+          </label>
+          <label id="nagadTab" style="flex:1;display:flex;align-items:center;gap:6px;background:var(--card-bg);border:2px solid var(--border);border-radius:9px;padding:8px 12px;cursor:pointer;font-size:.88rem;font-weight:700;transition:.2s">
+            <input type="radio" name="payMethod" value="nagad" onchange="switchPayMethod('nagad')" style="accent-color:var(--accent)"/> নগদ
+          </label>
+        </div>
+        <div id="nagadFeeNote" style="display:none;margin-top:6px;padding:7px 11px;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.3);border-radius:8px;font-size:.79rem;color:#f97316">
+          ⚠️ নগদে সর্বনিম্ন <strong>$1</strong>। $2-এর কম হলে ৳5 send fee কাটা হবে।
+        </div>
+      </div>
+      <div class="form-group">
+        <label id="receiverLabel">আপনার বিকাশ নম্বর <i class="help-icon" onclick="showHelp('bkash')">?</i></label>
+        <input type="tel" id="bkashNum" placeholder="01XXXXXXXXX" required maxlength="11" oninput="calcTaka()"/>
+        <div class="error-msg" id="bkashError"></div>
+      </div>
+      <div class="form-group">
+        <label id="senderAddrLabel">আপনার LTC Receive Address <i class="help-icon" onclick="showHelp('ltcReceive')">?</i></label>
+        <input type="text" id="ltcReceive" placeholder="আপনার LTC wallet address"/>
+        <div class="error-msg" id="ltcError"></div>
+      </div>
+      <div class="form-group">
+        <label>Transaction Screenshot <i class="help-icon" onclick="showHelp('screenshot')">?</i></label>
+        <div class="upload-area" id="uploadArea" onclick="document.getElementById('screenshotFile').click()" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
+          <input type="file" id="screenshotFile" accept="image/*" style="display:none" onchange="handleFileUpload(event)"/>
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">ক্লিক করুন বা ছবি Upload করুন</div>
+          <div class="upload-sub">PNG, JPG · max 5MB</div>
+        </div>
+        <div class="img-preview-wrap" id="imgPreviewWrap" style="display:none">
+          <img id="imgPreview" src="" alt="preview"/>
+          <button type="button" class="remove-img" onclick="removeImg()">✕</button>
+        </div>
+        <input type="hidden" id="screenshotUrl"/>
+        <div class="error-msg" id="screenshotError"></div>
+      </div>
+      <div id="inlineStatus" style="margin-bottom:10px;padding:9px 13px;border-radius:9px;font-size:.84rem;text-align:center;display:none"></div>
+      <button type="submit" class="btn-submit" id="submitBtn">
+        <span id="submitText">✅ Submit করুন</span>
+        <span id="submitLoading" style="display:none">⏳ পাঠানো হচ্ছে...</span>
+      </button>
+    </form>
+  </div>
+</section>
+
+<!-- ABOUT — কীভাবে পাঠাবেন guide -->
+<section class="about-section" id="sec-about">
+  <div class="section-title"><h2>🏪 আমাদের সম্পর্কে</h2><p>SwiftExchangeBD কী এবং কীভাবে কাজ করে?</p></div>
+  <div class="about-grid">
+    <div class="about-card"><div class="about-icon">⚡</div><h3>দ্রুত ও নিরাপদ</h3><p>রাত ১০–১১ PM-এ submit করলে <strong>তাৎক্ষণিক</strong> পেমেন্ট পাবেন।</p></div>
+    <div class="about-card"><div class="about-icon">💱</div><h3>Tiered Rate</h3><p style="line-height:2">$0.20–$0.50 → <strong>$1=১১৫৳</strong><br>$0.50–$1 → <strong>$1=১২০৳</strong><br>$1–$5 → <strong>$1=১২২৳</strong><br>$5–$10 → <strong>$1=১২৩৳</strong></p></div>
+    <div class="about-card"><div class="about-icon">📱</div><h3>বিকাশ ও নগদ পেমেন্ট</h3><p>সরাসরি আপনার <strong>বিকাশ বা নগদ নম্বরে</strong> পাঠানো হয়।</p></div>
+    <div class="about-card"><div class="about-icon">🕙</div><h3>Exchange সময়</h3><p><strong>রাত ১০:০০ PM – ১১:০০ PM</strong> তাৎক্ষণিক। অন্য সময় ২৪ ঘন্টার মধ্যে।</p></div>
+    <div class="about-card"><div class="about-icon">📋</div><h3>Order History</h3><p>Login করলে আপনার সব order-এর <strong>Pending/Confirmed</strong> status দেখতে পাবেন।</p></div>
+    <div class="about-card"><div class="about-icon">🆓</div><h3>বিনামূল্যে Account</h3><p>সম্পূর্ণ <strong>বিনামূল্যে</strong> account খুলুন। কোনো charge নেই।</p></div>
+  </div>
+  <div class="how-it-works">
+    <h3>⚙️ কীভাবে কাজ করে?</h3>
+    <div class="steps-row">
+      <div class="hw-step"><div class="hw-num">১</div><div class="hw-text">LTC/USDT address কপি করুন</div></div>
+      <div class="hw-arrow">→</div>
+      <div class="hw-step"><div class="hw-num">২</div><div class="hw-text">Wallet থেকে পাঠান</div></div>
+      <div class="hw-arrow">→</div>
+      <div class="hw-step"><div class="hw-num">৩</div><div class="hw-text">Form পূরণ করুন</div></div>
+      <div class="hw-arrow">→</div>
+      <div class="hw-step"><div class="hw-num">৪</div><div class="hw-text">বিকাশ/নগদে টাকা পান!</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TUTORIAL -->
+<section class="tutorial-section">
+  <div class="section-title"><h2>📹 Trust Wallet থেকে LTC কীভাবে পাঠাবেন?</h2><p>নিচের ভিডিও গাইডটি অনুসরণ করুন</p></div>
+  <div class="video-wrap">
+    <iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID_HERE" title="Trust Wallet LTC Tutorial" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  </div>
+  <p class="video-note" style="margin-top:11px">💡 ভিডিওতে Trust Wallet থেকে LTC পাঠানোর সম্পূর্ণ ধাপ দেখানো হয়েছে।</p>
+</section>
+
+
+
+<!-- ORDER HISTORY (user) -->
+<section class="history-section" id="sec-history" style="display:none">
+  <div class="section-title"><h2>📋 আমার Order History</h2><p>আপনার সব exchange request এর status দেখুন</p></div>
+  <div id="historyList"><div class="history-empty">⏳ লোড হচ্ছে...</div></div>
+</section>
+
+<!-- ADMIN PANEL -->
+<section class="admin-section" id="sec-admin" style="display:none">
+  <div class="admin-header">
+    <h2>⚙️ Admin Panel</h2>
+    <button class="btn-sm" onclick="loadAdminOrders()">🔄 Refresh</button>
+  </div>
+  
+  <div class="admin-tabs">
+    <button class="admin-tab-btn active" onclick="switchAdminTab('orders', this)">📦 Orders</button>
+    <button class="admin-tab-btn" onclick="switchAdminTab('chats', this)">💬 User Chats</button>
+  </div>
+
+  <!-- ADMIN ORDERS TAB -->
+  <div class="admin-tab-content active" id="adminTabOrders">
+    <div class="admin-stats" id="adminStats">
+      <div class="stat-card"><div class="stat-num" id="statTotal">–</div><div class="stat-label">মোট Orders</div></div>
+      <div class="stat-card"><div class="stat-num" id="statPending" style="color:var(--accent2)">–</div><div class="stat-label">Pending</div></div>
+      <div class="stat-card"><div class="stat-num" id="statConfirmed">–</div><div class="stat-label">Confirmed</div></div>
+      <div class="stat-card"><div class="stat-num" id="statRejected" style="color:var(--danger)">–</div><div class="stat-label">Rejected</div></div>
+    </div>
+    <div class="admin-filters">
+      <button class="filter-btn active" onclick="filterAdmin('all',this)">সব</button>
+      <button class="filter-btn" onclick="filterAdmin('pending',this)">⏳ Pending</button>
+      <button class="filter-btn" onclick="filterAdmin('confirmed',this)">✅ Confirmed</button>
+      <button class="filter-btn" onclick="filterAdmin('rejected',this)">❌ Rejected</button>
+    </div>
+    <div id="adminOrderList"><div class="history-empty">⏳ লোড হচ্ছে...</div></div>
+  </div>
+
+  <!-- ADMIN CHATS TAB -->
+  <div class="admin-tab-content" id="adminTabChats">
+    <div class="admin-chat-layout">
+      <div class="chat-user-list" id="adminChatUserList">
+        <div style="color:var(--text-muted);text-align:center;padding:20px;font-size:0.85rem;">লোড হচ্ছে...</div>
+      </div>
+      <div class="admin-chat-view">
+        <div class="admin-chat-header" id="adminChatHeader">💬 Select a user to chat</div>
+        <div class="admin-chat-body" id="adminChatBody">
+          <div style="color:var(--text-muted);text-align:center;margin-top:auto;margin-bottom:auto;">কোনো ইউজার সিলেক্ট করা হয়নি</div>
+        </div>
+        <div class="admin-chat-input-area" id="adminChatInputArea" style="display:none;">
+          <input type="text" id="adminChatInput" placeholder="Type message..." onkeypress="if(event.key==='Enter') sendAdminChat()"/>
+          <button onclick="sendAdminChat()">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LIVE CHAT WIDGET (USER) — WhatsApp redirect -->
+<div class="chat-widget">
+  <a href="https://wa.me/8801842739124" target="_blank" rel="noopener noreferrer" class="chat-btn" style="display:flex;align-items:center;justify-content:center;text-decoration:none;background:#25D366;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28" fill="#fff"><path d="M16 .8A15.2 15.2 0 0 0 2.3 22.5L.8 31.2l9-2.3A15.2 15.2 0 1 0 16 .8zm0 27.8a12.5 12.5 0 0 1-6.4-1.8l-.5-.3-5.3 1.4 1.4-5.2-.3-.5A12.6 12.6 0 1 1 16 28.6zm6.9-9.4c-.4-.2-2.2-1.1-2.6-1.2s-.6-.2-.8.2-1 1.2-1.2 1.4-.4.3-.8.1a10.3 10.3 0 0 1-3-1.9 11.3 11.3 0 0 1-2.1-2.6c-.2-.4 0-.6.2-.8l.6-.7.4-.6v-.6l-1.2-2.8c-.3-.7-.6-.6-.8-.6h-.7a1.4 1.4 0 0 0-1 .5 4.2 4.2 0 0 0-1.3 3.1 7.3 7.3 0 0 0 1.5 3.9c.2.3 2.8 4.3 6.8 6a8 8 0 0 0 2.7.6 3.8 3.8 0 0 0 2.5-.8 3.5 3.5 0 0 0 1.1-2.3c0-.4-.3-.7-.7-.9z"/></svg>
+  </a>
+</div>
+
+<!-- ===== MODALS ===== -->
+<div class="modal-overlay" id="helpModal" onclick="closeModalOutside(event,'helpModal')">
+  <div class="modal-box help-box">
+    <button class="modal-close" onclick="closeModal('helpModal')">✕</button>
+    <div class="help-icon-big" id="helpIcon">❓</div>
+    <h3 id="helpTitle">সাহায্য</h3>
+    <p id="helpBody"></p>
+  </div>
+</div>
+
+<div class="modal-overlay" id="signupModal" onclick="closeModalOutside(event,'signupModal')">
+  <div class="modal-box auth-box">
+    <button class="modal-close" onclick="closeModal('signupModal')">✕</button>
+    <h2>🆕 নতুন Account খুলুন</h2>
+    <p class="auth-sub">সম্পূর্ণ বিনামূল্যে 🆓</p>
+    <form onsubmit="signupUser(event)">
+      <div class="form-group"><label>ইমেইল</label><input type="email" id="signupEmail" placeholder="example@gmail.com" required/></div>
+      <div class="form-group"><label>পাসওয়ার্ড</label><input type="password" id="signupPass" placeholder="কমপক্ষে ৬ অক্ষর" required minlength="6"/></div>
+      <div class="auth-msg" id="signupMsg" style="display:none"></div>
+      <button type="submit" class="btn-submit" id="signupBtn2">✅ Account খুলুন</button>
+      <p class="auth-switch">Account আছে? <span onclick="switchModal('signupModal','loginModal')">লগইন করুন</span></p>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="loginModal" onclick="closeModalOutside(event,'loginModal')">
+  <div class="modal-box auth-box">
+    <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
+    <h2>🔑 লগইন করুন</h2>
+    <form onsubmit="loginUser(event)">
+      <div class="form-group"><label>ইমেইল</label><input type="email" id="loginEmail" placeholder="example@gmail.com" required/></div>
+      <div class="form-group"><label>পাসওয়ার্ড</label><input type="password" id="loginPass" placeholder="পাসওয়ার্ড" required/></div>
+      <div class="auth-msg" id="loginMsg" style="display:none"></div>
+      <button type="submit" class="btn-submit" id="loginBtn2">🔑 লগইন করুন</button>
+      <p style="text-align:center;margin-top:8px"><span onclick="switchModal('loginModal','resetModal')" style="color:var(--text-muted);font-size:.82rem;cursor:pointer">পাসওয়ার্ড ভুলে গেছেন?</span></p>
+      <p class="auth-switch">Account নেই? <span onclick="switchModal('loginModal','signupModal')">Sign Up করুন</span></p>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="resetModal" onclick="closeModalOutside(event,'resetModal')">
+  <div class="modal-box auth-box">
+    <button class="modal-close" onclick="closeModal('resetModal')">✕</button>
+    <h2>🔄 পাসওয়ার্ড রিসেট</h2>
+    <p class="auth-sub">ইমেইলে reset link পাঠানো হবে</p>
+    <form onsubmit="resetPassword(event)">
+      <div class="form-group"><label>ইমেইল</label><input type="email" id="resetEmail" placeholder="example@gmail.com" required/></div>
+      <div class="auth-msg" id="resetMsg" style="display:none"></div>
+      <button type="submit" class="btn-submit" id="resetBtn">📧 Reset Link পাঠান</button>
+      <p class="auth-switch"><span onclick="switchModal('resetModal','loginModal')">← লগইনে ফিরুন</span></p>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="successModal">
+  <div class="modal-box success-box">
+    <div class="success-anim">✅</div>
+    <h2>সফলভাবে Submit হয়েছে!</h2>
+    <p id="successMsg"></p>
+    <button class="btn-primary" onclick="closeModal('successModal');resetForm();showSection('history')">আমার Orders দেখুন</button>
+    <button class="btn-sm" style="margin-top:8px;width:100%" onclick="closeModal('successModal');resetForm()">বন্ধ করুন</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="imgViewModal" onclick="if(event.target.id==='imgViewModal')closeModal('imgViewModal')">
+  <div class="img-modal-box" style="display:flex;flex-direction:column;gap:10px;max-width:95vw;max-height:95vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:.85rem;color:var(--text-muted)">Screenshot</span>
+      <button onclick="closeModal('imgViewModal')" style="background:transparent;border:none;color:var(--text-muted);font-size:1.3rem;cursor:pointer">✕</button>
+    </div>
+    <img id="imgViewFull" src="" alt="screenshot" style="max-width:100%;max-height:70vh;border-radius:8px;display:block;object-fit:contain"/>
+    <div id="imgViewEmpty" style="display:none;text-align:center;padding:30px;color:var(--text-muted);font-size:.9rem">
+      ⚠️ Image load হয়নি।
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer class="footer">
+  <div class="footer-logo">⚡ SwiftExchangeBD</div>
+  <p>LTC ও USDT (BEP20) গ্রহণযোগ্য · বিকাশ / নগদে পেমেন্ট</p>
+  <p>Exchange সময়: রাত <strong>১০:০০ PM – ১১:০০ PM</strong></p>
+</footer>
+
+<script>
+// ============================================================
+//  CONFIG — এখানে আপনার তথ্য দিন
+// ============================================================
+const LTC_ADDRESS   = "ltc1qx0j2au0rghl6ytk6vvd8xuq0ndk8u5ke9kprfd";
+const USDT_ADDRESS  = "0xa063CF0258cf48Ddb756DeBB1838e9e526E06396"; // USDT BEP20
+const ADMIN_EMAIL   = "ak2857695@gmail.com";
+const FORMSPREE_ID  = "xnjgwqpe"; // formspree.io তে form বানিয়ে এখানে ID বসান
+const MIN_USD       = 0.20;
+const MAX_USD       = 10.00;
+const USDT_MIN_USD  = 0.50;   // USDT-এ সর্বনিম্ন $0.50
+const NAGAD_MIN_FREE = 2.00;   // নগদে এর কম হলে fee কাটবে
+const NAGAD_FEE_TAKA = 5;      // fee পরিমাণ (টাকা)
+const NAGAD_MIN_USD  = 1.00;   // নগদে সর্বনিম্ন $1
+const OPEN_HOUR     = 22;
+
+// Tiered rate — 4 tier
+// $0.20–$0.50 → $1 = ১১৫৳
+// $0.50–$1    → $1 = ১২০৳
+// $1–$5       → $1 = ১২২৳
+// $5–$10      → $1 = ১২৩৳
+function getRate(usd) {
+  if (usd >= 5)    return 123;
+  if (usd >= 1)    return 122;
+  if (usd >= 0.5)  return 120;
+  return 115;
+}
+
+// Firebase Config
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyBEpOyvmRQDFRa3vaR7I6NYev0213Pl3a8",
+  authDomain:        "swiftexchangebd.firebaseapp.com",
+  projectId:         "swiftexchangebd",
+  storageBucket:     "swiftexchangebd.firebasestorage.app",
+  messagingSenderId: "316733183100",
+  appId:             "1:316733183100:web:44babe9d8c715fb012a5f9",
+  measurementId:     "G-GJ0Q289ZW9"
+};
+
+// ============================================================
+let db = null;
+let auth = null;
+let currentUser = null;
+let allAdminOrders = [];
+let firebaseReady = false;
+let adminOrdersUnsub = null; // For real-time order sync
+
+// INIT FIREBASE
+function initFirebase(){
+  try {
+    if(FIREBASE_CONFIG.apiKey === "YOUR_API_KEY") {
+      console.warn("Firebase not configured — using localStorage mode");
+      return;
+    }
+    
+    // Check if already initialized
+    if(firebase.apps && firebase.apps.length > 0) {
+      db = firebase.firestore();
+      auth = firebase.auth();
+    } else {
+      firebase.initializeApp(FIREBASE_CONFIG);
+      db = firebase.firestore();
+      auth = firebase.auth();
+    }
+    
+    // Enable persistence for offline support
+    db.enablePersistence({ synchronizeTabs: true }).catch(err => {
+      if (err.code === 'failed-precondition') {
+        console.warn('Persistence failed: multiple tabs open');
+      } else if (err.code === 'unimplemented') {
+        console.warn('Persistence not supported');
+      }
+    });
+    
+    firebaseReady = true;
+    console.log('Firebase initialized successfully');
+
+    auth.onAuthStateChanged(user => {
+      console.log('Auth state changed:', user ? user.email : 'No user');
+      if(user){
+        currentUser = user;
+        showUserBar({name: user.displayName || user.email, email: user.email});
+        initUserChat(); // Start User Chat Sync
+      } else {
+        currentUser = null;
+        hideUserBar();
+        stopUserChat(); // Stop Chat Sync
+      }
+    });
+  } catch(e){ 
+    console.error("Firebase init failed:", e);
+    firebaseReady = false;
+  }
+}
+
+// Wait for DOM ready before initializing Firebase
+if(document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initFirebase);
+} else {
+  initFirebase();
+}
+
+// PARTICLES
+(function(){
+  const c=document.getElementById('particles');
+  for(let i=0;i<26;i++){
+    const p=document.createElement('div');
+    p.className='particle';
+    p.style.cssText=`left:${Math.random()*100}%;animation-duration:${6+Math.random()*10}s;animation-delay:${Math.random()*8}s`;
+    c.appendChild(p);
+  }
+})();
+
+// COIN ADDRESS — LTC / USDT switcher
+let currentCoin = 'ltc';
+function switchCoin(coin){
+  currentCoin = coin;
+  // radio input checked state sync করো
+  const radioLtc  = document.querySelector('input[name="coinType"][value="ltc"]');
+  const radioUsdt = document.querySelector('input[name="coinType"][value="usdt"]');
+  if(radioLtc)  radioLtc.checked  = (coin==='ltc');
+  if(radioUsdt) radioUsdt.checked = (coin==='usdt');
+  const addrEl   = document.getElementById('coinAddrDisplay');
+  const noteEl   = document.getElementById('coinNote');
+  const stepEl   = document.getElementById('stepSendText');
+  const ltcTab   = document.getElementById('ltcTab');
+  const usdtTab  = document.getElementById('usdtTab');
+  const addrLbl  = document.getElementById('senderAddrLabel');
+  if(coin==='usdt'){
+    addrEl.textContent  = USDT_ADDRESS;
+    noteEl.innerHTML    = '⚠️ শুধুমাত্র <strong>USDT BEP20 (BSC)</strong> পাঠান। অন্য network পাঠালে ফেরত সম্ভব নয়!';
+    stepEl.innerHTML    = '<span class="step-num">২</span>Send USDT (BEP20)';
+    ltcTab.style.cssText  = 'flex:1;display:flex;align-items:center;gap:6px;background:var(--card-bg);border:2px solid var(--border);border-radius:9px;padding:8px 10px;cursor:pointer;font-size:.84rem;font-weight:700;transition:.2s';
+    usdtTab.style.cssText = 'flex:1;display:flex;align-items:center;gap:6px;background:rgba(0,212,170,0.1);border:2px solid var(--accent);border-radius:9px;padding:8px 10px;cursor:pointer;font-size:.84rem;font-weight:700;transition:.2s';
+    if(addrLbl) addrLbl.innerHTML = 'Transaction ID <i class="help-icon" onclick="showHelp(\'ltcReceive\')">?</i>';
+    const ltcInput = document.getElementById('ltcReceive');
+    if(ltcInput) ltcInput.placeholder = '0x××××××××××× (USDT Transaction ID)';
+    const amtInput = document.getElementById('amount');
+    if(amtInput){ amtInput.placeholder='$0.50 থেকে $10.00 (USDT)'; amtInput.min=USDT_MIN_USD; }
+  } else {
+    addrEl.textContent  = LTC_ADDRESS;
+    noteEl.innerHTML    = '⚠️ শুধুমাত্র <strong>LTC</strong> পাঠান। অন্য coin পাঠালে ফেরত সম্ভব নয়!';
+    stepEl.innerHTML    = '<span class="step-num">২</span>Send LTC';
+    ltcTab.style.cssText  = 'flex:1;display:flex;align-items:center;gap:6px;background:rgba(0,212,170,0.1);border:2px solid var(--accent);border-radius:9px;padding:8px 10px;cursor:pointer;font-size:.84rem;font-weight:700;transition:.2s';
+    usdtTab.style.cssText = 'flex:1;display:flex;align-items:center;gap:6px;background:var(--card-bg);border:2px solid var(--border);border-radius:9px;padding:8px 10px;cursor:pointer;font-size:.84rem;font-weight:700;transition:.2s';
+    if(addrLbl) addrLbl.innerHTML = 'আপনার LTC Receive Address <i class="help-icon" onclick="showHelp(\'ltcReceive\')">?</i>';
+    const ltcInput2 = document.getElementById('ltcReceive');
+    if(ltcInput2) ltcInput2.placeholder = 'আপনার LTC wallet address';
+    const amtInput = document.getElementById('amount');
+    if(amtInput){ amtInput.placeholder='$0.20 থেকে $10.00'; amtInput.min=MIN_USD; }
+  }
+  calcTaka();
+}
+function copyCoinAddr(){
+  const addr = currentCoin==='usdt' ? USDT_ADDRESS : LTC_ADDRESS;
+  const label = currentCoin==='usdt' ? 'USDT' : 'LTC';
+  // Modern clipboard API
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(addr)
+      .then(()=>showToast('✅ '+label+' Address কপি হয়েছে!','success'))
+      .catch(()=>fallbackCopy(addr,label));
+  } else {
+    fallbackCopy(addr,label);
+  }
+}
+function fallbackCopy(addr,label){
+  // Create temp textarea, select, copy
+  const ta = document.createElement('textarea');
+  ta.value = addr;
+  ta.setAttribute('readonly','');
+  ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  ta.setSelectionRange(0, ta.value.length); // mobile support
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch(e){ ok=false; }
+  document.body.removeChild(ta);
+  if(ok){
+    showToast('✅ '+label+' Address কপি হয়েছে!','success');
+  } else {
+    // Last resort: show address in toast
+    showToast('📋 কপি করুন: '+addr.substring(0,20)+'...','');
+  }
+}
+// পেমেন্ট method switcher
+function switchPayMethod(method){
+  // radio sync
+  const rb = document.querySelector('input[name="payMethod"][value="'+method+'"]');
+  if(rb) rb.checked = true;
+  const bkashTab = document.getElementById('bkashTab');
+  const nagadTab = document.getElementById('nagadTab');
+  const feeNote  = document.getElementById('nagadFeeNote');
+  const lbl      = document.getElementById('receiverLabel');
+  if(method==='nagad'){
+    nagadTab.style.cssText = 'flex:1;display:flex;align-items:center;gap:6px;background:rgba(0,212,170,0.1);border:2px solid var(--accent);border-radius:9px;padding:8px 12px;cursor:pointer;font-size:.88rem;font-weight:700;transition:.2s';
+    bkashTab.style.cssText = 'flex:1;display:flex;align-items:center;gap:6px;background:var(--card-bg);border:2px solid var(--border);border-radius:9px;padding:8px 12px;cursor:pointer;font-size:.88rem;font-weight:700;transition:.2s';
+    feeNote.style.display  = 'block';
+    if(lbl) lbl.innerHTML  = 'আপনার নগদ নম্বর <i class="help-icon" onclick="showHelp(\'bkash\')">?</i>';
+  } else {
+    bkashTab.style.cssText = 'flex:1;display:flex;align-items:center;gap:6px;background:rgba(0,212,170,0.1);border:2px solid var(--accent);border-radius:9px;padding:8px 12px;cursor:pointer;font-size:.88rem;font-weight:700;transition:.2s';
+    nagadTab.style.cssText = 'flex:1;display:flex;align-items:center;gap:6px;background:var(--card-bg);border:2px solid var(--border);border-radius:9px;padding:8px 12px;cursor:pointer;font-size:.88rem;font-weight:700;transition:.2s';
+    feeNote.style.display  = 'none';
+    if(lbl) lbl.innerHTML  = 'আপনার বিকাশ নম্বর <i class="help-icon" onclick="showHelp(\'bkash\')">?</i>';
+  }
+  calcTaka();
+}
+// Init — সরাসরি call করা হচ্ছে (script defer এ চলে, DOM ready থাকে)
+function initUI(){
+  switchCoin('ltc');
+  switchPayMethod('bkash');
+}
+// DOM ready হলে call করো
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded', initUI);
+} else {
+  initUI(); // already ready
+}
+
+// CLOCK & STATUS
+function getBDTime(){ return new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Dhaka'})); }
+function updateStatus(){
+  const bd=getBDTime(), h=bd.getHours(), m=bd.getMinutes(), s=bd.getSeconds();
+  const ampm=h>=12?'PM':'AM', h12=h%12||12;
+  document.getElementById('liveClock').textContent=`${String(h12).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')} ${ampm}`;
+  const dot=document.getElementById('statusDot'), txt=document.getElementById('statusText'), banner=document.getElementById('hoursBanner'), htxt=document.getElementById('hoursText');
+  const inSt = document.getElementById('inlineStatus');
+  if(h===OPEN_HOUR){
+    dot.className='dot open'; txt.textContent='এখন Open';
+    banner.className='hours-banner open-state';
+    htxt.textContent='✅ Exchange চলছে! এখন submit করলে তাৎক্ষণিক পেমেন্ট পাবেন।';
+    if(inSt){ inSt.style.display='block'; inSt.style.cssText='margin-bottom:10px;padding:9px 13px;border-radius:9px;font-size:.84rem;text-align:center;background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.25);color:var(--accent)'; inSt.textContent='✅ Exchange চলছে — এখন submit করলে তাৎক্ষণিক পেমেন্ট পাবেন!'; }
+  } else if(h===OPEN_HOUR-1&&m>=50){
+    dot.className='dot soon'; txt.textContent='শীঘ্রই খুলবে';
+    banner.className='hours-banner soon-state';
+    htxt.textContent=`⏳ ${60-m} মিনিটে Exchange খুলবে!`;
+    if(inSt){ inSt.style.display='block'; inSt.style.cssText='margin-bottom:10px;padding:9px 13px;border-radius:9px;font-size:.84rem;text-align:center;background:rgba(247,201,72,0.08);border:1px solid rgba(247,201,72,0.25);color:var(--accent2)'; inSt.textContent='⏳ '+(60-m)+' মিনিটে Exchange খুলবে!'; }
+  } else {
+    dot.className='dot closed'; txt.textContent='এখন Closed';
+    banner.className='hours-banner closed-state';
+    htxt.textContent='⛔ Exchange বন্ধ। রাত ১০টায় খুলবে। এখন submit করলে রাত ১০ টার পর পেমেন্ট পাবেন।';
+    if(inSt){ inSt.style.display='block'; inSt.style.cssText='margin-bottom:10px;padding:9px 13px;border-radius:9px;font-size:.84rem;text-align:center;background:rgba(255,77,109,0.07);border:1px solid rgba(255,77,109,0.2);color:#ff8fa3'; inSt.textContent='⛔ Exchange বন্ধ। রাত ১০টায় খুলবে। এখন submit করলে রাত ১০ টার পর পেমেন্ট পাবেন।'; }
+  }
+}
+updateStatus(); setInterval(updateStatus,1000);
+
+// CALC TAKA — tiered rate + nagad fee
+function calcTaka(){
+  const v    = parseFloat(document.getElementById('amount').value);
+  const prev = document.getElementById('takaPreview');
+  const err  = document.getElementById('amountError');
+  // checked radio safely পড়া
+  const pmEl = document.querySelector('input[name="payMethod"]:checked');
+  const payMethod = pmEl ? pmEl.value : 'bkash';
+  // clear করো
+  prev.innerHTML = ''; err.innerHTML = '';
+  if(!v || isNaN(v)) return;
+  if(v < MIN_USD){ err.innerHTML = '⚠️ সর্বনিম্ন $'+MIN_USD; return; }
+  if(v > MAX_USD){ err.innerHTML = '⚠️ সর্বোচ্চ $'+MAX_USD; return; }
+  // checked radio safely পড়া
+  const coinEl = document.querySelector('input[name="coinType"]:checked');
+  const coinType = coinEl ? coinEl.value : 'ltc';
+  if(coinType==='usdt' && v < USDT_MIN_USD){ err.innerHTML = '⚠️ USDT-তে সর্বনিম্ন $'+USDT_MIN_USD; return; }
+  if(payMethod==='nagad' && v < NAGAD_MIN_USD){ err.innerHTML = '⚠️ নগদে সর্বনিম্ন $'+NAGAD_MIN_USD; return; }
+  const rate = getRate(v);
+  let taka = Math.round(v * rate);
+  let feeNote = '';
+  if(payMethod==='nagad' && v < NAGAD_MIN_FREE){
+    taka = Math.max(0, taka - NAGAD_FEE_TAKA);
+    feeNote = ' <span style="color:#f97316">(−৳'+NAGAD_FEE_TAKA+' fee)</span>';
+  }
+  prev.innerHTML = '≈ ৳<strong style="font-size:1.05rem;color:var(--accent)">'+taka+'</strong> টাকা পাবেন'
+    +'<span style="color:var(--text-muted);font-size:.76rem;margin-left:6px">· রেট $1=৳'+rate+feeNote+'</span>';
+  // Rate table — active tier highlight
+  ['rt1','rt2','rt3','rt4'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.querySelector('.rt-val').classList.remove('highlight-rate');
+  });
+  const activeRt = v>=5?'rt4': v>=1?'rt3': v>=0.5?'rt2':'rt1';
+  const activeEl = document.getElementById(activeRt);
+  if(activeEl) activeEl.querySelector('.rt-val').classList.add('highlight-rate');
+}
+
+// FILE UPLOAD
+let uploadedUrl='';
+function handleDrop(e){ e.preventDefault(); const f=e.dataTransfer.files[0]; if(f) processFile(f); }
+function handleFileUpload(e){ const f=e.target.files[0]; if(f) processFile(f); }
+function processFile(file){
+  if(file.size>5*1024*1024){showToast('ছবির size সর্বোচ্চ 5MB','error');return;}
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=function(){
+      const canvas=document.createElement('canvas');
+      // max 1280px, quality 0.85 → ~100-300KB
+      const MAX=1280;
+      let w=img.width, h=img.height;
+      if(w>MAX||h>MAX){
+        if(w>h){h=Math.round(h*MAX/w);w=MAX;}
+        else{w=Math.round(w*MAX/h);h=MAX;}
+      }
+      canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      let compressed=canvas.toDataURL('image/jpeg',0.85);
+      document.getElementById('imgPreview').src=compressed;
+      document.getElementById('imgPreviewWrap').style.display='block';
+      document.getElementById('uploadArea').style.display='none';
+      document.getElementById('screenshotError').textContent='';
+      document.getElementById('screenshotUrl').value=compressed;
+      uploadedUrl=compressed;
+      const kb=Math.round(compressed.length*0.75/1024);
+      showToast('✅ Screenshot ready ('+kb+'KB)','success');
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function removeImg(){
+  document.getElementById('imgPreview').src='';
+  document.getElementById('imgPreviewWrap').style.display='none';
+  document.getElementById('uploadArea').style.display='block';
+  document.getElementById('screenshotFile').value='';
+  document.getElementById('screenshotUrl').value='';
+  uploadedUrl='';
+}
+
+// SUBMIT FORM
+async function submitForm(e){
+  e.preventDefault();
+  let valid = true;
+  const amount     = parseFloat(document.getElementById('amount').value);
+  const receiver   = document.getElementById('bkashNum').value.trim();
+  const senderAddr = document.getElementById('ltcReceive').value.trim();
+  const scrUrl     = document.getElementById('screenshotUrl').value;
+  const coinType   = document.querySelector('input[name="coinType"]:checked')?.value || 'ltc';
+  const payMethod  = document.querySelector('input[name="payMethod"]:checked')?.value || 'bkash';
+
+  // Validation
+  document.getElementById('amountError').textContent='';
+  document.getElementById('bkashError').textContent='';
+  document.getElementById('ltcError').textContent='';
+  document.getElementById('screenshotError').textContent='';
+
+  if(!amount || amount<MIN_USD || amount>MAX_USD){
+    document.getElementById('amountError').textContent='$'+MIN_USD+'–$'+MAX_USD+' এর মধ্যে দিন'; valid=false;
+  }
+  if(coinType==='usdt' && amount < USDT_MIN_USD){
+    document.getElementById('amountError').textContent='USDT-তে সর্বনিম্ন $'+USDT_MIN_USD; valid=false;
+  }
+  if(payMethod==='nagad' && amount < NAGAD_MIN_USD){
+    document.getElementById('amountError').textContent='নগদে সর্বনিম্ন $'+NAGAD_MIN_USD; valid=false;
+  }
+  if(!/^01[0-9]{9}$/.test(receiver)){
+    document.getElementById('bkashError').textContent='সঠিক মোবাইল নম্বর দিন (01XXXXXXXXX)'; valid=false;
+  }
+  if(senderAddr.length < 10){
+    document.getElementById('ltcError').textContent='সঠিক wallet address দিন'; valid=false;
+  }
+  if(!scrUrl){
+    document.getElementById('screenshotError').textContent='Screenshot আবশ্যক'; valid=false;
+  }
+  if(!valid) return;
+
+  document.getElementById('submitText').style.display='none';
+  document.getElementById('submitLoading').style.display='inline';
+  document.getElementById('submitBtn').disabled=true;
+
+  const rate   = getRate(amount);
+  let taka     = Math.round(amount * rate);
+  if(payMethod==='nagad' && amount < NAGAD_MIN_FREE) taka = Math.max(0, taka - NAGAD_FEE_TAKA);
+  const isOpen = getBDTime().getHours()===OPEN_HOUR;
+  const u_email = currentUser ? currentUser.email : (JSON.parse(localStorage.getItem('swiftCurrentUser')||'{}').email || 'guest');
+  const u_id    = currentUser ? currentUser.uid : ('local_'+u_email);
+
+  // screenshot আলাদা রাখো — orderData তে রাখবো না, size issue এড়াতে
+  const orderData = {
+    amount, coin_type:coinType, pay_method:payMethod,
+    receiver_number:receiver, sender_address:senderAddr,
+    taka, rate,
+    status:'pending', submitted_at:new Date().toISOString(),
+    user_email:u_email, user_id:u_id
+  };
+
+  let saved = false, savedId = '';
+  
+  if(firebaseReady && db){
+    try{
+      const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+      
+      const ref = await db.collection('orders').add({
+        ...orderData,
+        id: null,
+        created_at: serverTimestamp
+      });
+      savedId = ref.id;
+
+      // screenshot chunk করে save করো (Firestore 1MB limit এড়াতে)
+      if(scrUrl){
+        try{
+          const CHUNK = 600000; // ~600KB per chunk, safe under Firestore 1MB field limit
+          const chunks = {};
+          let i = 0;
+          for(let pos=0; pos<scrUrl.length; pos+=CHUNK){
+            chunks['c'+i] = scrUrl.slice(pos, pos+CHUNK);
+            i++;
+          }
+          chunks.total = i;
+          await db.collection('screenshots').doc(savedId).set(chunks);
+        } catch(se){ console.warn('Screenshot save error:', se); }
+      }
+
+      await ref.update({ id: savedId, has_screenshot: !!scrUrl });
+      saved = true;
+      
+      try{
+        await db.collection('notifications').add({
+          type: 'new_order',
+          order_id: savedId,
+          user_email: u_email,
+          amount, taka, receiver,
+          coin_type: coinType,
+          pay_method: payMethod,
+          read: false,
+          created_at: serverTimestamp
+        });
+      } catch(ne){ console.warn('Notification error:', ne); }
+
+    } catch(err){
+      console.error('Firebase save error:', err);
+      showToast('Firebase save error: ' + err.message, 'error');
+      saved = false;
+    }
+  }
+  
+  if(!saved){
+    const orders = JSON.parse(localStorage.getItem('swiftOrders') || '[]');
+    savedId = 'local_' + Date.now();
+    orders.push({ ...orderData, id: savedId, screenshot_url: scrUrl });
+    localStorage.setItem('swiftOrders', JSON.stringify(orders));
+    
+    const localNotifs = JSON.parse(localStorage.getItem('swiftNotifications') || '[]');
+    localNotifs.unshift({
+      type: 'new_order', order_id: savedId, user_email: u_email,
+      amount, taka, receiver, coin_type: coinType, pay_method: payMethod,
+      read: false, created_at: new Date().toISOString()
+    });
+    localStorage.setItem('swiftNotifications', JSON.stringify(localNotifs.slice(0, 50)));
+  }
+
+  // ✅ Formspree Email Notification
+  sendEmailNotification({savedId,u_email,amount,taka,rate,coinType,payMethod,receiver});
+
+  document.getElementById('submitText').style.display='inline';
+  document.getElementById('submitLoading').style.display='none';
+  document.getElementById('submitBtn').disabled=false;
+
+  const payLabel = payMethod==='nagad' ? 'নগদ' : 'বিকাশ';
+  document.getElementById('successMsg').textContent = isOpen
+    ? 'আপনার $'+amount+' (= ৳'+taka+') অর্ডার পাওয়া গেছে। অল্প সময়ের মধ্যে '+receiver+' নম্বরে '+payLabel+' পেমেন্ট পাবেন।'
+    : 'আপনার $'+amount+' (= ৳'+taka+') অর্ডার পাওয়া গেছে। Exchange বন্ধ থাকায় পরবর্তী ২৪ ঘন্টার মধ্যে '+receiver+' নম্বরে '+payLabel+' পেমেন্ট পাবেন।';
+  openModal('successModal');
+}
+
+// ✅ EMAIL NOTIFICATION via Formspree
+async function sendEmailNotification({savedId,u_email,amount,taka,rate,coinType,payMethod,receiver}){
+  if(!FORMSPREE_ID || FORMSPREE_ID==='YOUR_FORMSPREE_ID') return;
+  try{
+    await fetch('https://formspree.io/f/'+FORMSPREE_ID, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body: JSON.stringify({
+        _subject: '🔔 নতুন Order - SwiftExchangeBD',
+        Order_ID:        savedId,
+        User_Email:      u_email,
+        Amount:          '$'+amount,
+        Taka:            '৳'+taka,
+        Rate:            '$1 = ৳'+rate,
+        Coin_Type:       coinType.toUpperCase(),
+        Payment_Method:  payMethod,
+        Receiver_Number: receiver,
+        Time:            new Date().toLocaleString('bn-BD',{timeZone:'Asia/Dhaka'})
+      })
+    });
+  } catch(err){ console.warn('Formspree error:', err); }
+}
+
+function resetForm(){
+  document.getElementById('exchangeForm').reset();
+  document.getElementById('takaPreview').textContent='';
+  removeImg();
+  ['amountError','bkashError','ltcError','screenshotError'].forEach(id=>document.getElementById(id).textContent='');
+  switchCoin('ltc');
+  switchPayMethod('bkash');
+}
+
+// =====================
+// ORDER HISTORY (User)
+// =====================
+let userHistoryUnsub = null;
+
+async function loadUserHistory(){
+  const list = document.getElementById('historyList');
+  list.innerHTML = '<div class="history-empty">Loading history...</div>';
+  
+  // Stop existing listener
+  if(userHistoryUnsub) {
+    try { userHistoryUnsub(); } catch(e) {}
+    userHistoryUnsub = null;
+  }
+  
+  const u_id = currentUser ? currentUser.uid : ('local_' + (JSON.parse(localStorage.getItem('swiftCurrentUser') || '{}').email));
+  
+  if(firebaseReady && db && currentUser){
+    console.log('Setting up user history listener for:', currentUser.uid);
+    
+    try {
+      // Use onSnapshot for real-time updates
+      userHistoryUnsub = db.collection('orders')
+        .where('user_id', '==', currentUser.uid)
+        .orderBy('submitted_at', 'desc')
+        .onSnapshot(
+          snapshot => {
+            console.log('User history snapshot received, count:', snapshot.size);
+            const orders = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
+            
+            if(!orders.length){
+              list.innerHTML = '<div class="history-empty">No orders found. Submit an order to see your history.</div>';
+              return;
+            }
+            list.innerHTML = orders.map(o => orderCardHTML(o, false)).join('');
+          },
+          error => {
+            console.error('User history error:', error);
+            
+            // Check if it's an index error - try without orderBy
+            if(error.code === 'failed-precondition' || error.message.includes('index')) {
+              console.log('Index not ready for user history, fetching without orderBy...');
+              loadUserHistoryWithoutIndex(u_id, list);
+            } else {
+              // Fallback to localStorage
+              const localOrders = JSON.parse(localStorage.getItem('swiftOrders') || '[]')
+                .filter(o => o.user_id === u_id)
+                .reverse();
+              if(!localOrders.length){
+                list.innerHTML = '<div class="history-empty">No orders found.</div>';
+                return;
+              }
+              list.innerHTML = localOrders.map(o => orderCardHTML(o, false)).join('');
+            }
+          }
+        );
+    } catch(e) {
+      console.error('Error setting up user history listener:', e);
+      loadUserHistoryWithoutIndex(u_id, list);
+    }
+  } else {
+    console.log('Firebase not ready for user history, using localStorage');
+    const orders = JSON.parse(localStorage.getItem('swiftOrders') || '[]')
+      .filter(o => o.user_id === u_id)
+      .reverse();
+    if(!orders.length){
+      list.innerHTML = '<div class="history-empty">No orders found. Submit an order to see your history.</div>';
+      return;
+    }
+    list.innerHTML = orders.map(o => orderCardHTML(o, false)).join('');
+  }
+}
+
+// Fallback function if composite index is not created
+async function loadUserHistoryWithoutIndex(u_id, list) {
+  try {
+    // Fetch only by user_id, without orderBy
+    const snapshot = await db.collection('orders')
+      .where('user_id', '==', currentUser.uid)
+      .get();
+    
+    console.log('User history fetched without index, count:', snapshot.size);
+    let orders = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
+    
+    // Sort manually
+    orders.sort((a, b) => new Date(b.submitted_at) - new Date(a.submitted_at));
+    
+    if(!orders.length){
+      list.innerHTML = '<div class="history-empty">No orders found. Submit an order to see your history.</div>';
+      return;
+    }
+    list.innerHTML = orders.map(o => orderCardHTML(o, false)).join('');
+  } catch(e) {
+    console.error('Fallback user history error:', e);
+    // Final fallback to localStorage
+    const localOrders = JSON.parse(localStorage.getItem('swiftOrders') || '[]')
+      .filter(o => o.user_id === u_id)
+      .reverse();
+    if(!localOrders.length){
+      list.innerHTML = '<div class="history-empty">No orders found.</div>';
+      return;
+    }
+    list.innerHTML = localOrders.map(o => orderCardHTML(o, false)).join('');
+  }
+}
+
+function orderCardHTML(o, isAdmin){
+  const statusLabel={pending:'⏳ Pending',confirmed:'✅ Confirmed',rejected:'❌ Rejected'}[o.status]||o.status;
+  const dt=new Date(o.submitted_at).toLocaleString('bn-BD',{timeZone:'Asia/Dhaka'});
+  const shortId=(o.id||'').toString().slice(-8);
+  let adminActions='';
+  if(isAdmin&&o.status==='pending'){
+    adminActions=`<div class="admin-order-actions">
+      <input class="admin-note-input" id="note_${o.id}" placeholder="Admin note (optional)" />
+      <button class="btn-confirm" onclick="updateOrder('${o.id}','confirmed')">✅ Confirm</button>
+      <button class="btn-reject" onclick="updateOrder('${o.id}','rejected')">❌ Reject</button>
+    </div>`;
+  }
+  const hasScr=o.has_screenshot||o.screenshot_url;
+  const screenshotBtn=hasScr
+    ?`<div class="order-screenshot"><a href="#" id="scrBtn_${o.id}" onclick="loadAndViewScreenshot('${o.id}');return false">📷 Screenshot দেখুন</a>${isAdmin?` <a href="#" id="scrCopy_${o.id}" style="display:none;margin-left:10px;color:var(--accent2);font-size:.8rem">📋 Base64 Copy</a>`:''}</div>`
+    :'';
+  const noteBox=o.admin_note?`<div class="order-note">💬 Admin: ${o.admin_note}</div>`:'';
+  return `<div class="order-card" id="oc_${o.id}">
+    <div class="order-header">
+      <div><div class="order-id">Order #${shortId}</div><div class="order-time">${dt}</div></div>
+      <span class="status-pill ${o.status}">${statusLabel}</span>
+    </div>
+    <div class="order-details">
+      <div class="order-detail-item"><div class="order-detail-label">Amount</div><div class="order-detail-val">$${o.amount}</div></div>
+      <div class="order-detail-item"><div class="order-detail-label">টাকা</div><div class="order-detail-val">৳${o.taka}</div></div>
+      <div class="order-detail-item"><div class="order-detail-label">মোবাইল</div><div class="order-detail-val">${o.receiver_number||o.bkash_number||'—'}</div></div>
+      <div class="order-detail-item"><div class="order-detail-label">Coin</div><div class="order-detail-val">${(o.coin_type||'ltc').toUpperCase()}</div></div>
+      <div class="order-detail-item"><div class="order-detail-label">পদ্ধতি</div><div class="order-detail-val">${o.pay_method==='nagad'?'🟠 নগদ':'📱 বিকাশ'}</div></div>
+      ${isAdmin?`<div class="order-detail-item"><div class="order-detail-label">User</div><div class="order-detail-val" style="font-size:.78rem">${o.user_email||'guest'}</div></div>`:''}
+      ${isAdmin?`<div class="order-detail-item"><div class="order-detail-label">Rate</div><div class="order-detail-val">$1=৳${o.rate||'—'}</div></div>`:''}
+      ${isAdmin&&o.pay_method?`<div class="order-detail-item"><div class="order-detail-label">Pay Method</div><div class="order-detail-val">${o.pay_method==='nagad'?'🟠 নগদ':'📱 বিকাশ'}</div></div>`:''}
+      ${isAdmin&&o.sender_address?`<div class="order-detail-item" style="grid-column:1/-1"><div class="order-detail-label">🔗 Sender Address (${(o.coin_type||'ltc').toUpperCase()})</div><div class="order-detail-val" style="font-family:monospace;font-size:.74rem;word-break:break-all;color:var(--accent)">${o.sender_address||o.ltc_receive}</div></div>`:''}
+    </div>
+    ${screenshotBtn}${noteBox}${adminActions}
+  </div>`;
+}
+
+function viewImg(url){
+  const imgEl = document.getElementById('imgViewFull');
+  const emptyEl = document.getElementById('imgViewEmpty');
+
+  imgEl.style.display = 'block';
+  if(emptyEl) emptyEl.style.display = 'none';
+  imgEl.src = '';
+
+  openModal('imgViewModal');
+
+  if(url){
+    imgEl.onerror = function(){
+      imgEl.style.display = 'none';
+      if(emptyEl) emptyEl.style.display = 'block';
+    };
+    imgEl.onload = function(){
+      imgEl.style.display = 'block';
+      if(emptyEl) emptyEl.style.display = 'none';
+    };
+    setTimeout(()=>{ imgEl.src = url; }, 50);
+  } else {
+    imgEl.style.display = 'none';
+    if(emptyEl) emptyEl.style.display = 'block';
+  }
+}
+
+
+async function loadAndViewScreenshot(orderId){
+  const linkEl = document.getElementById('scrBtn_'+orderId);
+  const copyEl = document.getElementById('scrCopy_'+orderId);
+
+  // localStorage fallback
+  const localOrders = JSON.parse(localStorage.getItem('swiftOrders')||'[]');
+  const localOrder = localOrders.find(o=>o.id===orderId);
+  if(localOrder && localOrder.screenshot_url){
+    viewImg(localOrder.screenshot_url);
+    return;
+  }
+
+  if(!firebaseReady||!db){ showToast('Screenshot পাওয়া যায়নি','error'); return; }
+  if(linkEl) linkEl.textContent='⏳ লোড হচ্ছে...';
+  if(copyEl) copyEl.style.display='none';
+
+  try{
+    const doc = await db.collection('screenshots').doc(orderId).get();
+    if(linkEl) linkEl.textContent='📷 Screenshot দেখুন';
+
+    if(doc.exists){
+      const d = doc.data();
+      let imgData = '';
+      if(d.total){
+        for(let i=0; i<d.total; i++) imgData += (d['c'+i]||'');
+      } else if(d.data){
+        imgData = d.data;
+      }
+
+      if(imgData){
+        // prefix না থাকলে add করো
+        const finalImg = imgData.startsWith('data:') ? imgData : 'data:image/jpeg;base64,'+imgData;
+        console.log('imgData length:', finalImg.length, 'starts with:', finalImg.slice(0,30));
+        viewImg(finalImg);
+        // copy button দেখাও
+        if(copyEl){
+          copyEl.style.display='inline';
+          copyEl.onclick = function(){
+            if(navigator.clipboard){
+              navigator.clipboard.writeText(imgData)
+                .then(()=>showToast('✅ Base64 copied!','success'))
+                .catch(()=>fallbackCopyBase64(imgData));
+            } else { fallbackCopyBase64(imgData); }
+          };
+        }
+      } else {
+        showToast('Screenshot data নেই','error');
+      }
+    } else {
+      showToast('Screenshot পাওয়া যায়নি','error');
+    }
+  } catch(e){
+    if(linkEl) linkEl.textContent='📷 Screenshot দেখুন';
+    showToast('Load error: '+e.message,'error');
+    console.error(e);
+  }
+}
+
+function fallbackCopyBase64(text){
+  const ta=document.createElement('textarea');
+  ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); showToast('✅ Base64 copied!','success'); }
+  catch(e){ showToast('Copy failed — manually copy from console','error'); console.log('BASE64:', text); }
+  document.body.removeChild(ta);
+}
+
+// =====================
+// ADMIN PANEL LOGIC
+// =====================
+// ===========================
+// ADMIN NOTIFICATIONS SYSTEM
+// ===========================
+let adminNotifUnsub = null;
+
+function loadAdminNotifications(){
+  const badge = document.getElementById('adminNotifBadge');
+  if(!badge) {
+    console.warn('Admin notification badge element not found');
+    return;
+  }
+  
+  if(firebaseReady && db){
+    console.log('Setting up admin notifications listener...');
+    
+    // Clean up existing listener
+    if(adminNotifUnsub) {
+      try { adminNotifUnsub(); } catch(e) {}
+    }
+    
+    adminNotifUnsub = db.collection('notifications')
+      .where('read', '==', false)
+      .onSnapshot(
+        snap => {
+          const count = snap.size;
+          console.log('Unread notifications count:', count);
+          badge.textContent = count > 0 ? count : '';
+          badge.style.display = count > 0 ? 'inline-flex' : 'none';
+        }, 
+        err => {
+          console.error('Notifications listener error:', err);
+          badge.style.display = 'none';
+        }
+      );
+  } else {
+    console.log('Loading notifications from localStorage');
+    // localStorage fallback
+    const notifs = JSON.parse(localStorage.getItem('swiftNotifications') || '[]');
+    const unread = notifs.filter(n => !n.read).length;
+    badge.textContent = unread || '';
+    badge.style.display = unread > 0 ? 'inline-flex' : 'none';
+  }
+}
+
+async function markAllNotifsRead(){
+  if(firebaseReady && db){
+    try{
+      const snap = await db.collection('notifications').where('read','==',false).get();
+      const batch = db.batch();
+      snap.docs.forEach(doc => batch.update(doc.ref, {read:true}));
+      await batch.commit();
+    } catch(e){ console.warn(e); }
+  } else {
+    const notifs = JSON.parse(localStorage.getItem('swiftNotifications')||'[]');
+    notifs.forEach(n=>n.read=true);
+    localStorage.setItem('swiftNotifications', JSON.stringify(notifs));
+    const badge = document.getElementById('adminNotifBadge');
+    if(badge){ badge.textContent=''; badge.style.display='none'; }
+  }
+}
+
+function switchAdminTab(tab, btn){
+  document.querySelectorAll('.admin-tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('adminTabOrders').classList.remove('active');
+  document.getElementById('adminTabChats').classList.remove('active');
+  
+  if(tab==='orders') {
+    document.getElementById('adminTabOrders').classList.add('active');
+    loadAdminOrders();
+  } else {
+    document.getElementById('adminTabChats').classList.add('active');
+    loadAdminChats();
+  }
+}
+
+async function loadAdminOrders(){
+  const list = document.getElementById('adminOrderList');
+  list.innerHTML = '<div class="history-empty">Loading orders...</div>';
+  
+  // Stop any existing listener
+  if(adminOrdersUnsub) {
+    try { adminOrdersUnsub(); } catch(e) {}
+    adminOrdersUnsub = null;
+  }
+  
+  if(firebaseReady && db){
+    console.log('Setting up real-time orders listener...');
+    
+    try {
+      // Use onSnapshot for real-time updates
+      adminOrdersUnsub = db.collection('orders')
+        .orderBy('submitted_at', 'desc')
+        .onSnapshot(
+          snapshot => {
+            console.log('Orders snapshot received, count:', snapshot.size);
+            let orders = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
+            
+            // Merge with localStorage orders (for any local fallback orders)
+            const localOrders = JSON.parse(localStorage.getItem('swiftOrders') || '[]').reverse();
+            const mergedIds = new Set(orders.map(o => o.id));
+            localOrders.forEach(lo => {
+              if(!mergedIds.has(lo.id)) {
+                orders.push(lo);
+              }
+            });
+            
+            // Sort by submission time
+            orders.sort((a, b) => new Date(b.submitted_at) - new Date(a.submitted_at));
+            
+            allAdminOrders = orders;
+            renderAdminOrders(orders);
+            updateStats(orders);
+          },
+          error => {
+            console.error('Orders listener error:', error);
+            
+            // Check if it's an index error
+            if(error.code === 'failed-precondition' || error.message.includes('index')) {
+              console.log('Index not ready, trying without orderBy...');
+              // Try without orderBy - will sort manually
+              loadAdminOrdersWithoutIndex();
+            } else {
+              showToast('Failed to load orders: ' + error.message, 'error');
+              loadLocalStorageOrders();
+            }
+          }
+        );
+    } catch(e) {
+      console.error('Error setting up listener:', e);
+      loadLocalStorageOrders();
+    }
+  } else {
+    console.log('Firebase not ready, loading from localStorage');
+    loadLocalStorageOrders();
+  }
+}
+
+// Fallback function if index is not created
+async function loadAdminOrdersWithoutIndex(){
+  try {
+    const snapshot = await db.collection('orders').get();
+    console.log('Orders fetched without index, count:', snapshot.size);
+    let orders = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
+    
+    // Merge with localStorage
+    const localOrders = JSON.parse(localStorage.getItem('swiftOrders') || '[]');
+    const mergedIds = new Set(orders.map(o => o.id));
+    localOrders.forEach(lo => {
+      if(!mergedIds.has(lo.id)) {
+        orders.push(lo);
+      }
+    });
+    
+    // Sort manually by submitted_at descending
+    orders.sort((a, b) => new Date(b.submitted_at) - new Date(a.submitted_at));
+    
+    allAdminOrders = orders;
+    renderAdminOrders(orders);
+    updateStats(orders);
+  } catch(e) {
+    console.error('Fallback load error:', e);
+    loadLocalStorageOrders();
+  }
+}
+
+function loadLocalStorageOrders(){
+  const localOrders = JSON.parse(localStorage.getItem('swiftOrders') || '[]').reverse();
+  localOrders.sort((a, b) => new Date(b.submitted_at) - new Date(a.submitted_at));
+  allAdminOrders = localOrders;
+  renderAdminOrders(localOrders);
+  updateStats(localOrders);
+}
+
+function renderAdminOrders(orders){
+  const list=document.getElementById('adminOrderList');
+  if(!orders.length){list.innerHTML='<div class="history-empty">কোনো order নেই।</div>';return;}
+  list.innerHTML=orders.map(o=>orderCardHTML(o,true)).join('');
+}
+
+function updateStats(orders){
+  document.getElementById('statTotal').textContent=orders.length;
+  document.getElementById('statPending').textContent=orders.filter(o=>o.status==='pending').length;
+  document.getElementById('statConfirmed').textContent=orders.filter(o=>o.status==='confirmed').length;
+  document.getElementById('statRejected').textContent=orders.filter(o=>o.status==='rejected').length;
+}
+
+function filterAdmin(status, btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered=status==='all'?allAdminOrders:allAdminOrders.filter(o=>o.status===status);
+  renderAdminOrders(filtered);
+}
+
+async function updateOrder(orderId, newStatus){
+  console.log('Updating order:', orderId, 'to status:', newStatus);
+  const note = (document.getElementById('note_' + orderId) || {}).value || '';
+  
+  if(orderId.startsWith('local_') || !firebaseReady || !db){
+    console.log('Updating in localStorage');
+    const orders = JSON.parse(localStorage.getItem('swiftOrders') || '[]');
+    const idx = orders.findIndex(o => o.id === orderId);
+    if(idx !== -1){
+      orders[idx].status = newStatus;
+      orders[idx].updated_at = new Date().toISOString();
+      if(note) orders[idx].admin_note = note;
+    }
+    localStorage.setItem('swiftOrders', JSON.stringify(orders));
+  } else {
+    try{
+      const upd = {
+        status: newStatus, 
+        updated_at: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      if(note) upd.admin_note = note;
+      await db.collection('orders').doc(orderId).update(upd);
+      console.log('Order updated successfully in Firebase');
+    } catch(e){ 
+      console.error('Update order error:', e);
+      showToast('Update failed: ' + e.message, 'error'); 
+      return; 
+    }
+  }
+  showToast(newStatus === 'confirmed' ? 'Payment Confirmed!' : 'Order Rejected', 'success');
+  // Note: With real-time listener, orders will auto-refresh, but calling this ensures immediate update
+  // loadAdminOrders() is no longer needed as onSnapshot handles updates
+}
+
+// =====================
+// CHAT SYSTEM LOGIC
+// =====================
+let chatUnsubUser = null;
+let chatUnsubAdmin = null;
+let chatListUnsub = null;
+let currentAdminChatUserId = null;
+
+function toggleChat(){
+  const box = document.getElementById('userChatBox');
+  box.classList.toggle('active');
+  if(box.classList.contains('active')){
+    scrollToBottom('userChatBody');
+  }
+}
+
+// User side init
+function initUserChat(){
+  const u_email = currentUser ? currentUser.email : JSON.parse(localStorage.getItem('swiftCurrentUser')||'{}').email;
+  if(!u_email){
+    document.getElementById('chatLoginPrompt').style.display='flex';
+    document.getElementById('userChatBody').style.display='none';
+    document.getElementById('userChatInputArea').style.display='none';
+    return;
+  }
+  document.getElementById('chatLoginPrompt').style.display='none';
+  document.getElementById('userChatBody').style.display='flex';
+  document.getElementById('userChatInputArea').style.display='flex';
+
+  const u_id = currentUser ? currentUser.uid : ('local_'+u_email);
+  loadChatMessages(u_id, 'userChatBody');
+}
+
+function stopUserChat(){
+  if(chatUnsubUser) { chatUnsubUser(); chatUnsubUser=null; }
+  document.getElementById('chatLoginPrompt').style.display='flex';
+  document.getElementById('userChatBody').style.display='none';
+  document.getElementById('userChatInputArea').style.display='none';
+  document.getElementById('userChatBody').innerHTML='';
+}
+
+async function sendUserChat(){
+  const inp = document.getElementById('userChatInput');
+  const text = inp.value.trim();
+  if(!text) return;
+  inp.value='';
+  
+  const u_email = currentUser ? currentUser.email : JSON.parse(localStorage.getItem('swiftCurrentUser')||'{}').email;
+  const u_id = currentUser ? currentUser.uid : ('local_'+u_email);
+  
+  await saveChatMessage(u_id, u_email, text, 'user');
+  if(!firebaseReady) loadChatMessages(u_id, 'userChatBody'); // manual reload for localstorage
+}
+
+// Admin side chat list
+async function loadAdminChats(){
+  if(!firebaseReady){
+    // localstorage fallback
+    const allLocal = JSON.parse(localStorage.getItem('swiftChats')||'{}');
+    const list = Object.keys(allLocal).map(uid=>allLocal[uid]).sort((a,b)=>new Date(b.updated_at)-new Date(a.updated_at));
+    renderAdminChatList(list);
+    return;
+  }
+  
+  // Admin chat list এর জন্য আলাদা unsub variable ব্যবহার করুন
+  if(chatListUnsub) { try{ chatListUnsub(); }catch(e){} }
+  chatListUnsub = db.collection('chats').orderBy('updated_at','desc').onSnapshot(snap=>{
+    const list = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderAdminChatList(list);
+  }, err => console.warn(err));
+}
+
+function renderAdminChatList(list){
+  const cList = document.getElementById('adminChatUserList');
+  if(!list.length){ cList.innerHTML='<div style="padding:15px;text-align:center;color:var(--text-muted)">কোনো চ্যাট নেই</div>'; return; }
+  
+  cList.innerHTML = list.map(c=>{
+    const dt = c.updated_at ? new Date(c.updated_at).toLocaleTimeString('bn-BD',{hour:'2-digit',minute:'2-digit'}) : '';
+    const unread = c.unread_admin ? '<span class="unread-badge">New</span>' : '';
+    return `<div class="chat-user-item ${currentAdminChatUserId===c.id?'active':''}" onclick="openAdminChat('${c.id}','${c.user_email}')">
+      <div class="chat-user-email">${c.user_email} ${unread}</div>
+      <div class="chat-user-meta"><span>${c.last_msg||'Image'}</span><span>${dt}</span></div>
+    </div>`;
+  }).join('');
+}
+
+function openAdminChat(userId, userEmail){
+  currentAdminChatUserId = userId;
+  document.getElementById('adminChatHeader').textContent = `💬 ${userEmail}`;
+  document.getElementById('adminChatBody').innerHTML = '';
+  document.getElementById('adminChatInputArea').style.display = 'flex';
+  
+  // Highlight active
+  document.querySelectorAll('.chat-user-item').forEach(el=>el.classList.remove('active'));
+  // Note: hard to target directly without ID, rely on re-render.
+  loadAdminChats(); // refresh list to show active
+  
+  loadChatMessages(userId, 'adminChatBody');
+  
+  // Mark as read
+  if(firebaseReady && db && !userId.startsWith('local_')){
+    db.collection('chats').doc(userId).update({unread_admin: false}).catch(()=>{});
+  } else {
+    let local = JSON.parse(localStorage.getItem('swiftChats')||'{}');
+    if(local[userId]){ local[userId].unread_admin = false; localStorage.setItem('swiftChats',JSON.stringify(local)); }
+  }
+}
+
+async function sendAdminChat(){
+  const inp = document.getElementById('adminChatInput');
+  const text = inp.value.trim();
+  if(!text || !currentAdminChatUserId) return;
+  inp.value='';
+  
+  await saveChatMessage(currentAdminChatUserId, 'Admin', text, 'admin');
+  if(!firebaseReady) loadChatMessages(currentAdminChatUserId, 'adminChatBody'); // local refresh
+}
+
+// Shared Core Chat DB function
+async function saveChatMessage(userId, userEmail, text, sender){
+  const msg = { text, sender, timestamp: new Date().toISOString() };
+  
+  if(firebaseReady && db && !userId.startsWith('local_')){
+    try{
+      await db.collection('chats').doc(userId).collection('messages').add(msg);
+      await db.collection('chats').doc(userId).set({
+        user_email: userEmail,
+        last_msg: text.substring(0,30),
+        updated_at: msg.timestamp,
+        unread_admin: sender==='user',
+        unread_user: sender==='admin'
+      }, {merge:true});
+    } catch(e){ console.warn(e); }
+  } else {
+    // LocalStorage Fallback
+    const chats = JSON.parse(localStorage.getItem('swiftChats')||'{}');
+    if(!chats[userId]) chats[userId] = { id: userId, user_email: userEmail, messages: [] };
+    chats[userId].messages.push(msg);
+    chats[userId].last_msg = text.substring(0,30);
+    chats[userId].updated_at = msg.timestamp;
+    chats[userId].unread_admin = sender==='user';
+    chats[userId].unread_user = sender==='admin';
+    localStorage.setItem('swiftChats', JSON.stringify(chats));
+  }
+}
+
+function loadChatMessages(userId, containerId){
+  const container = document.getElementById(containerId);
+  
+  if(containerId==='userChatBody'){
+    if(chatUnsubUser) { try{ chatUnsubUser(); }catch(e){} chatUnsubUser=null; }
+  } else {
+    // admin message subscription এর আগেরটা বন্ধ করুন (list subscription নয়)
+    if(chatUnsubAdmin && typeof chatUnsubAdmin === 'function') { try{ chatUnsubAdmin(); }catch(e){} chatUnsubAdmin=null; }
+  }
+  
+  if(firebaseReady && db && !userId.startsWith('local_')){
+    const unsub = db.collection('chats').doc(userId).collection('messages').orderBy('timestamp','asc')
+      .onSnapshot(snap => {
+        const msgs = snap.docs.map(d=>d.data());
+        renderMessages(msgs, container);
+      }, err=>console.warn(err));
+      
+    if(containerId==='userChatBody'){
+      chatUnsubUser = unsub;
+    } else {
+      // Admin chat এর আগের subscription বন্ধ করুন
+      if(chatUnsubAdmin && typeof chatUnsubAdmin === 'function') { try{ chatUnsubAdmin(); }catch(e){} }
+      chatUnsubAdmin = unsub;
+    }
+    
+    // mark read for user
+    if(containerId==='userChatBody'){
+      db.collection('chats').doc(userId).update({unread_user: false}).catch(()=>{});
+    }
+  } else {
+    // LocalStorage Fallback
+    const chats = JSON.parse(localStorage.getItem('swiftChats')||'{}');
+    const msgs = chats[userId] ? chats[userId].messages :[];
+    renderMessages(msgs, container);
+    if(containerId==='userChatBody' && chats[userId]){
+      chats[userId].unread_user = false;
+      localStorage.setItem('swiftChats', JSON.stringify(chats));
+    }
+  }
+}
+
+function renderMessages(msgs, container){
+  if(!msgs.length){
+    container.innerHTML = `<div style="text-align:center;color:var(--text-muted);font-size:0.85rem;margin-top:20px;">কোনো মেসেজ নেই। এখনই শুরু করুন!</div>`;
+    return;
+  }
+  container.innerHTML = msgs.map(m => `<div class="chat-msg ${m.sender}">${m.text}</div>`).join('');
+  scrollToBottom(container.id);
+}
+
+function scrollToBottom(id){
+  const el = document.getElementById(id);
+  if(el) setTimeout(()=> { el.scrollTop = el.scrollHeight; }, 100);
+}
+
+// =====================
+// SECTIONS UI
+// =====================
+function showSection(sec){['sec-history','sec-admin'].forEach(id=>{ const el=document.getElementById(id); if(el)el.style.display='none'; });
+  if(sec==='history'){ document.getElementById('sec-history').style.display='block'; loadUserHistory(); document.getElementById('sec-history').scrollIntoView({behavior:'smooth'}); }
+  if(sec==='admin'){ document.getElementById('sec-admin').style.display='block'; switchAdminTab('orders', document.querySelector('.admin-tab-btn')); document.getElementById('sec-admin').scrollIntoView({behavior:'smooth'}); markAllNotifsRead(); }
+}
+
+// =====================
+// AUTH SYSTEM
+// =====================
+async function signupUser(e){
+  e.preventDefault();
+  const email=document.getElementById('signupEmail').value.trim();
+  const pass=document.getElementById('signupPass').value;
+  const msgEl=document.getElementById('signupMsg');
+  const btn=document.getElementById('signupBtn2');
+  msgEl.style.display='none';
+  btn.disabled=true; btn.textContent='⏳ তৈরি হচ্ছে...';
+  
+  if(!firebaseReady || !auth){
+    const users=JSON.parse(localStorage.getItem('swiftUsers')||'{}');
+    if(users[email]){showAuthMsg('signupMsg','এই ইমেইলে ইতিমধ্যে account আছে','error');btn.disabled=false;btn.textContent='✅ Account খুলুন';return;}
+    users[email]={email,pass};
+    localStorage.setItem('swiftUsers',JSON.stringify(users));
+    localStorage.setItem('swiftCurrentUser',JSON.stringify({email}));
+    currentUser={email,displayName:email, uid:'local_'+email};
+    closeModal('signupModal'); showUserBar({name:email,email}); showToast('✅ Account তৈরি হয়েছে!','success');
+    initUserChat();
+    btn.disabled=false; btn.textContent='✅ Account খুলুন'; return;
+  }
+  
+  try{
+    await auth.createUserWithEmailAndPassword(email, pass);
+    btn.disabled=false; btn.textContent='✅ Account খুলুন';
+    showAuthMsg('signupMsg','✅ Account তৈরি হয়েছে!','success');
+    closeModal('signupModal');
+    showToast('✅ স্বাগতম!','success');
+  } catch(error){
+    btn.disabled=false; btn.textContent='✅ Account খুলুন';
+    const msg = error.code==='auth/email-already-in-use'?'এই ইমেইলে ইতিমধ্যে account আছে।':
+                error.code==='auth/weak-password'?'পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে।':error.message;
+    showAuthMsg('signupMsg','❌ '+msg,'error');
+  }
+}
+
+async function loginUser(e){
+  e.preventDefault();
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  const btn=document.getElementById('loginBtn2');
+  document.getElementById('loginMsg').style.display='none';
+  btn.disabled=true; btn.textContent='⏳ লগইন হচ্ছে...';
+  
+  if(!firebaseReady || !auth){
+    const users=JSON.parse(localStorage.getItem('swiftUsers')||'{}');
+    if(!users[email]||users[email].pass!==pass){showAuthMsg('loginMsg','ইমেইল বা পাসওয়ার্ড ভুল','error');btn.disabled=false;btn.textContent='🔑 লগইন করুন';return;}
+    const user=users[email];
+    localStorage.setItem('swiftCurrentUser',JSON.stringify(user));
+    currentUser={email,displayName:user.name, uid:'local_'+email};
+    closeModal('loginModal'); showUserBar(user); showToast('✅ স্বাগতম '+ (user.name||user.email) +'!','success');
+    initUserChat();
+    btn.disabled=false; btn.textContent='🔑 লগইন করুন'; return;
+  }
+  
+  try{
+    await auth.signInWithEmailAndPassword(email, pass);
+    btn.disabled=false; btn.textContent='🔑 লগইন করুন';
+    closeModal('loginModal');
+    showToast('✅ স্বাগতম!','success');
+  } catch(error){
+    btn.disabled=false; btn.textContent='🔑 লগইন করুন';
+    showAuthMsg('loginMsg','❌ ইমেইল বা পাসওয়ার্ড ভুল।','error');
+  }
+}
+
+async function resetPassword(e){
+  e.preventDefault();
+  const email=document.getElementById('resetEmail').value.trim();
+  const btn=document.getElementById('resetBtn');
+  btn.disabled=true; btn.textContent='⏳ পাঠানো হচ্ছে...';
+  if(!firebaseReady || !auth){showAuthMsg('resetMsg','⚠️ Firebase configure না থাকলে password reset সম্ভব নয়।','error');btn.disabled=false;btn.textContent='📧 Reset Link পাঠান';return;}
+  try{
+    await auth.sendPasswordResetEmail(email);
+    btn.disabled=false; btn.textContent='📧 Reset Link পাঠান';
+    showAuthMsg('resetMsg','✅ Reset link আপনার ইমেইলে পাঠানো হয়েছে!','success');
+  } catch(e){
+    btn.disabled=false; btn.textContent='📧 Reset Link পাঠান';
+    showAuthMsg('resetMsg','❌ ইমেইল সঠিক নয় বা account নেই।','error');
+  }
+}
+
+function showAuthMsg(id,msg,type){
+  const el=document.getElementById(id);
+  el.textContent=msg;
+  el.className='auth-msg '+(type==='error'?'error-msg-box':'success-msg-box');
+  el.style.display='block';
+}
+
+function showUserBar(user){
+  document.getElementById('userBar').style.display='flex';
+  document.getElementById('userGreet').textContent=(user.name||user.email);
+  document.getElementById('loginBtn').style.display='none';
+  document.getElementById('signupBtn').style.display='none';
+  const adminBtn=document.getElementById('adminNavBtn');
+  
+  // Case-insensitive admin email comparison
+  const isAdmin = user.email && ADMIN_EMAIL && 
+                  user.email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim();
+  
+  console.log('User logged in:', user.email, 'IsAdmin:', isAdmin);
+  
+  if(isAdmin){ 
+    adminBtn.style.display='inline-block'; 
+    loadAdminNotifications(); 
+  } else {
+    adminBtn.style.display='none';
+  }
+}
+
+function hideUserBar(){
+  document.getElementById('userBar').style.display='none';
+  document.getElementById('loginBtn').style.display='';
+  document.getElementById('signupBtn').style.display='';
+  document.getElementById('adminNavBtn').style.display='none';
+}
+
+async function logoutUser(){
+  // Clean up all real-time listeners
+  if(adminOrdersUnsub) { try { adminOrdersUnsub(); } catch(e) {} adminOrdersUnsub = null; }
+  if(userHistoryUnsub) { try { userHistoryUnsub(); } catch(e) {} userHistoryUnsub = null; }
+  if(adminNotifUnsub) { try { adminNotifUnsub(); } catch(e) {} adminNotifUnsub = null; }
+  if(chatListUnsub) { try { chatListUnsub(); } catch(e) {} chatListUnsub = null; }
+  
+  if(firebaseReady && auth){ 
+    try{ await auth.signOut(); } catch(e) { console.warn('Logout error:', e); } 
+  } else {
+    localStorage.removeItem('swiftCurrentUser');
+  }
+  
+  currentUser = null;
+  allAdminOrders = [];
+  hideUserBar();
+  stopUserChat();
+  ['sec-history','sec-admin'].forEach(id => { 
+    const el = document.getElementById(id); 
+    if(el) el.style.display = 'none'; 
+  });
+  showToast('Logout successful', 'success');
+}
+
+// auto-login localStorage fallback
+(function(){
+  if(!firebaseReady){
+    const u=localStorage.getItem('swiftCurrentUser');
+    if(u){const user=JSON.parse(u); currentUser={email:user.email,displayName:user.name, uid:'local_'+user.email}; showUserBar(user); initUserChat();}
+  }
+})();
+
+// HELP DATA
+const helpData={
+  amount:{icon:'💵',title:'Amount কী?',body:'আপনি কত ডলার sell করতে চান তা লিখুন।\n\nসর্বনিম্ন: $0.20 (LTC) / $0.50 (USDT) · সর্বোচ্চ: $10.00\n\nRate:\n$0.20–$0.50 → $1=৳115\n$0.50–$1.00 → $1=৳120\n$1.00–$5.00 → $1=৳122\n$5.00–$10.00 → $1=৳123\n\nনগদে সর্বনিম্ন $1.00'},
+  bkash:{icon:'📱',title:'বিকাশ / নগদ নম্বর',body:'আপনার বিকাশ বা নগদ মোবাইল নম্বর দিন।\nএই নম্বরেই টাকা পাঠানো হবে।\n\nউদাহরণ: 01712345678\n\n⚠️ ভুল নম্বর দিলে টাকা ফেরত সম্ভব নয়!'},paymethod:{icon:'💳',title:'পেমেন্ট পদ্ধতি',body:'বিকাশ বা নগদ — যেটায় টাকা পেতে চান সেটি বেছে নিন।\n\n🟠 নগদ নিয়ম:\n• সর্বনিম্ন $1.00\n• $2-এর কম হলে ৳5 send fee কাটা হবে\n• $2 বা বেশি হলে কোনো fee নেই'},
+  ltcReceive:{icon:'🔗',title:'Sender Wallet Address',body:'আপনি যেই wallet থেকে coin পাঠাচ্ছেন সেটির receive address।\n\nLTC: Trust Wallet → Litecoin → Receive\nUSDT: Trust Wallet → BNB Smart Chain → USDT → Receive\n\nএটি দিলে আমরা আপনার payment verify করতে পারি।'},
+  screenshot:{icon:'📸',title:'Screenshot কীভাবে নেবেন?',body:'আমাদের LTC address-এ coin পাঠানোর পর Trust Wallet-এ transaction confirmation screenshot নিন।\n\nTrust Wallet → Transaction History → সেই transaction → Screenshot নিন।'}
+};
+function showHelp(key){ const d=helpData[key]; document.getElementById('helpIcon').textContent=d.icon; document.getElementById('helpTitle').textContent=d.title; document.getElementById('helpBody').textContent=d.body; openModal('helpModal'); }
+
+// MODALS
+function openModal(id){document.getElementById(id).classList.add('active')}
+function closeModal(id){document.getElementById(id).classList.remove('active')}
+function closeModalOutside(e,id){if(e.target.id===id)closeModal(id)}
+function switchModal(from,to){closeModal(from);setTimeout(()=>openModal(to),120)}
+
+// TOAST
+let toastT;
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show '+type;
+  clearTimeout(toastT); toastT=setTimeout(()=>t.className='toast',3200);
+}
+
+// ESC
+document.addEventListener('keydown',e=>{ if(e.key==='Escape')['helpModal','signupModal','loginModal','resetModal','successModal','imgViewModal'].forEach(closeModal); });
+</script>
+</body>
+</html>
